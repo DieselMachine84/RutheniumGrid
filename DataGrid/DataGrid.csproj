@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <AssemblyName>Ruthenium.DataGrid</AssemblyName>
+        <RootNamespace>Ruthenium</RootNamespace>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Avalonia.Desktop" Version="0.8.0" />
+    </ItemGroup>
+
+</Project>
