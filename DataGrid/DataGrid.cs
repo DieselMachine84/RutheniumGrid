@@ -1,28 +1,52 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
-using Avalonia.Media;
 
 namespace Ruthenium
 {
     public class DataGrid : Control
     {
-        static DataGrid()
+        public static readonly DirectProperty<DataGrid, object> ItemsSourceProperty =
+            AvaloniaProperty.RegisterDirect<DataGrid, object>(nameof(ItemsSource),
+                o => o.ItemsSource, (o, v) => o.ItemsSource = v);
+
+        private object _itemsSource = new AvaloniaList<object>();
+        
+        protected DataGridPanel Panel { get; }
+
+        public object ItemsSource
         {
-            ClipToBoundsProperty.OverrideDefaultValue<DataGrid>(true);
+            get => _itemsSource;
+            set => SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
         }
 
-        public override void Render(DrawingContext context)
+        public List<DataGridColumn> Columns { get; } = new List<DataGridColumn>();
+
+        static DataGrid()
         {
-            FormattedText text = new FormattedText
-            {
-                Typeface = new Typeface(FontFamily.Default, 14.0, FontStyle.Normal, FontWeight.Bold),
-                Text = "Ruthenium grid",
-                TextAlignment = TextAlignment.Left,
-                Wrapping = TextWrapping.NoWrap,
-            };
-            SolidColorBrush brush = new SolidColorBrush(Color.FromArgb(255, 127, 0, 0));
-            context.DrawText(brush, new Point(0.0, 0.0), text);
+            ItemsSourceProperty.Changed.AddClassHandler<DataGrid>(x => x.ItemsSourceChanged);
+        }
+
+        public DataGrid()
+        {
+            Panel = new DataGridPanel(Columns);
+        }
+
+        protected void ItemsSourceChanged(AvaloniaPropertyChangedEventArgs e)
+        {
+            Panel.CreateContent(e.NewValue);
+        }
+
+        //TODO why this code is within ApplyTemplate?
+        public override void ApplyTemplate()
+        {
+            LogicalChildren.Clear();
+            LogicalChildren.Add(Panel);
+            VisualChildren.Clear();
+            VisualChildren.Add(Panel);
         }
     }
 }

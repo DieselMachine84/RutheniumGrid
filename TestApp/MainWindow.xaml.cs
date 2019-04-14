@@ -9,6 +9,8 @@ namespace Ruthenium.TestApp
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = DataSources.GetSimpleDataSource(30);
         }
 
         private void InitializeComponent()
