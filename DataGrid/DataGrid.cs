@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Avalonia;
-using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 
 namespace Ruthenium
 {
-    public class DataGrid : Control
+    public class DataGrid : UserControl
     {
         public static readonly DirectProperty<DataGrid, object> ItemsSourceProperty =
             AvaloniaProperty.RegisterDirect<DataGrid, object>(nameof(ItemsSource),
                 o => o.ItemsSource, (o, v) => o.ItemsSource = v);
 
-        private object _itemsSource = new AvaloniaList<object>();
+        private object _itemsSource;
         
-        protected DataGridPanel Panel { get; }
+        private DataGridPanel Panel { get; set; }
 
         public object ItemsSource
         {
@@ -32,21 +30,28 @@ namespace Ruthenium
 
         public DataGrid()
         {
-            Panel = new DataGridPanel(Columns);
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            Panel = new DataGridPanel();
+            Content = new ScrollViewer()
+            {
+                Content = Panel
+            };
         }
 
         protected void ItemsSourceChanged(AvaloniaPropertyChangedEventArgs e)
         {
-            Panel.CreateContent(e.NewValue);
+            Panel.RecreateCells(e.NewValue);
         }
 
-        //TODO why this code is within ApplyTemplate?
-        public override void ApplyTemplate()
+        protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
         {
-            LogicalChildren.Clear();
-            LogicalChildren.Add(Panel);
-            VisualChildren.Clear();
-            VisualChildren.Add(Panel);
+            base.OnTemplateApplied(e);
+            Panel.Columns.AddRange(Columns);
+            Panel.RecreateCells(ItemsSource);
         }
     }
 }

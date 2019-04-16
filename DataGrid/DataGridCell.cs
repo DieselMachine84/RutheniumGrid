@@ -1,14 +1,13 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
 
 namespace Ruthenium
 {
     public class DataGridCell : Control
     {
-        protected string Text { get; }
+        private string Text { get; }
 
-        protected TextBlock TextBlock { get; private set; }
+        private TextBlock TextBlock { get; set; }
         
         public int Row { get; }
         
@@ -50,4 +49,4 @@ namespace Ruthenium
             VisualChildren.Add(TextBlock);
         }
     }
-}
+}    

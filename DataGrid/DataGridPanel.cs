@@ -10,77 +10,27 @@ namespace Ruthenium
 {
     public class DataGridPanel : Control
     {
-        protected DataController Controller { get; } = new DataController();
+        private DataController Controller { get; } = new DataController();
 
-        protected List<DataGridColumn> Columns { get; }
+        internal List<DataGridColumn> Columns { get; } = new List<DataGridColumn>();
 
-        protected List<DataGridCell> Cells { get; } = new List<DataGridCell>(512);
-        
-        protected List<double> ColumnWidths { get; } = new List<double>();
+        private List<DataGridCell> Cells { get; } = new List<DataGridCell>(512);
 
-        protected List<double> AccumulatedColumnWidths { get; } = new List<double>();
-        
-        protected List<double> RowHeights { get; } = new List<double>(64);
+        private List<double> ColumnWidths { get; } = new List<double>();
 
-        protected List<double> AccumulatedRowHeights { get; } = new List<double>(64);
-        
-        protected List<Line> ColumnLines { get; } = new List<Line>();
-        
-        protected List<Line> RowLines { get; } = new List<Line>(64);
+        private List<double> AccumulatedColumnWidths { get; } = new List<double>();
 
-        public DataGridPanel(List<DataGridColumn> columns)
+        private List<double> RowHeights { get; } = new List<double>(64);
+
+        private List<double> AccumulatedRowHeights { get; } = new List<double>(64);
+
+        private List<Line> ColumnLines { get; } = new List<Line>();
+
+        private List<Line> RowLines { get; } = new List<Line>(64);
+
+
+        public DataGridPanel()
         {
-            Columns = columns;
-        }
-
-        private void ZeroColumnRowSizes()
-        {
-            if (ColumnWidths.Count != Columns.Count)
-            {
-                ColumnWidths.Clear();
-                ColumnWidths.AddRange(Enumerable.Repeat(0.0, Columns.Count));
-            }
-            else
-            {
-                for (int i = 0; i < ColumnWidths.Count; i++)
-                {
-                    ColumnWidths[i] = 0.0;
-                }
-            }
-
-            if (RowHeights.Count != Controller.Count)
-            {
-                RowHeights.Clear();
-                RowHeights.AddRange(Enumerable.Repeat(0.0, Controller.Count));
-            }
-            else
-            {
-                for (int i = 0; i < RowHeights.Count; i++)
-                {
-                    RowHeights[i] = 0.0;
-                }
-            }
-        }
-
-        private void CalcAccumulatedColumnRowSizes()
-        {
-            AccumulatedColumnWidths.Clear();
-            for (int i = 0; i < ColumnWidths.Count + 1; i++)
-            {
-                if (i == 0)
-                    AccumulatedColumnWidths.Add(0.0);
-                else
-                    AccumulatedColumnWidths.Add(AccumulatedColumnWidths[i - 1] + ColumnWidths[i - 1]);
-            }
-            
-            AccumulatedRowHeights.Clear();
-            for (int i = 0; i < RowHeights.Count + 1; i++)
-            {
-                if (i == 0)
-                    AccumulatedRowHeights.Add(0.0);
-                else
-                    AccumulatedRowHeights.Add(AccumulatedRowHeights[i - 1] + RowHeights[i - 1]);
-            }
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -100,6 +50,57 @@ namespace Ruthenium
             CalcAccumulatedColumnRowSizes();
 
             return new Size(ColumnWidths.Sum(), RowHeights.Sum());
+            
+
+            void ZeroColumnRowSizes()
+            {
+                if (ColumnWidths.Count != Columns.Count)
+                {
+                    ColumnWidths.Clear();
+                    ColumnWidths.AddRange(Enumerable.Repeat(0.0, Columns.Count));
+                }
+                else
+                {
+                    for (int i = 0; i < ColumnWidths.Count; i++)
+                    {
+                        ColumnWidths[i] = 0.0;
+                    }
+                }
+
+                if (RowHeights.Count != Controller.Count)
+                {
+                    RowHeights.Clear();
+                    RowHeights.AddRange(Enumerable.Repeat(0.0, Controller.Count));
+                }
+                else
+                {
+                    for (int i = 0; i < RowHeights.Count; i++)
+                    {
+                        RowHeights[i] = 0.0;
+                    }
+                }
+            }
+
+            void CalcAccumulatedColumnRowSizes()
+            {
+                AccumulatedColumnWidths.Clear();
+                for (int i = 0; i < ColumnWidths.Count + 1; i++)
+                {
+                    if (i == 0)
+                        AccumulatedColumnWidths.Add(0.0);
+                    else
+                        AccumulatedColumnWidths.Add(AccumulatedColumnWidths[i - 1] + ColumnWidths[i - 1]);
+                }
+            
+                AccumulatedRowHeights.Clear();
+                for (int i = 0; i < RowHeights.Count + 1; i++)
+                {
+                    if (i == 0)
+                        AccumulatedRowHeights.Add(0.0);
+                    else
+                        AccumulatedRowHeights.Add(AccumulatedRowHeights[i - 1] + RowHeights[i - 1]);
+                }
+            }
         }
 
         protected override Size ArrangeOverride(Size finalSize)
@@ -127,47 +128,58 @@ namespace Ruthenium
             return finalSize;
         }
 
-
-        public void CreateContent(object itemsSource)
+        public void RecreateCells(object itemsSource)
         {
             LogicalChildren.Clear();
             VisualChildren.Clear();
             
             Controller.SetItemsSource(itemsSource);
-            for (int row = 0; row < Controller.Count; row++)
+            if (Controller.Count > 0)
             {
-                for (int column = 0; column < Columns.Count; column++)
+                CreateCells();
+                CreateGridLines();
+            }
+
+            void CreateCells()
+            {
+                for (int row = 0; row < Controller.Count; row++)
                 {
-                    var cell = new DataGridCell(row, column,
-                        Controller.GetPropertyText(row, Columns[column].FieldName));
-                    Cells.Add(cell);
-                    LogicalChildren.Add(cell);
-                    VisualChildren.Add(cell);
+                    for (int column = 0; column < Columns.Count; column++)
+                    {
+                        var cell = new DataGridCell(row, column,
+                            Controller.GetPropertyText(row, Columns[column].FieldName));
+                        Cells.Add(cell);
+                        LogicalChildren.Add(cell);
+                        VisualChildren.Add(cell);
+                    }
                 }
             }
-
-            SolidColorBrush lineBrush = new SolidColorBrush();
-            lineBrush.Color = Colors.Black;
-            ColumnLines.Clear();
-            for (int i = 0; i < Columns.Count + 1; i++)
+            
+            void CreateGridLines()
             {
-                Line line = new Line();
-                line.Stroke = lineBrush;
-                line.StrokeThickness = 1.0;
-                ColumnLines.Add(line);
-                LogicalChildren.Add(line);
-                VisualChildren.Add(line);
-            }
+                SolidColorBrush lineBrush = new SolidColorBrush();
+                lineBrush.Color = Colors.Black;
+                ColumnLines.Clear();
+                for (int i = 0; i < Columns.Count + 1; i++)
+                {
+                    Line line = new Line();
+                    line.Stroke = lineBrush;
+                    line.StrokeThickness = 1.0;
+                    ColumnLines.Add(line);
+                    LogicalChildren.Add(line);
+                    VisualChildren.Add(line);
+                }
 
-            RowLines.Clear();
-            for (int i = 0; i < Controller.Count + 1; i++)
-            {
-                Line line = new Line();
-                line.Stroke = lineBrush;
-                line.StrokeThickness = 1.0;
-                RowLines.Add(line);
-                LogicalChildren.Add(line);
-                VisualChildren.Add(line);
+                RowLines.Clear();
+                for (int i = 0; i < Controller.Count + 1; i++)
+                {
+                    Line line = new Line();
+                    line.Stroke = lineBrush;
+                    line.StrokeThickness = 1.0;
+                    RowLines.Add(line);
+                    LogicalChildren.Add(line);
+                    VisualChildren.Add(line);
+                }
             }
         }
     }
