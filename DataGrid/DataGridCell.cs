@@ -5,20 +5,18 @@ namespace Ruthenium
 {
     public class DataGridCell : Control
     {
-        private string Text { get; }
-
         private TextBlock TextBlock { get; set; }
-        
-        public int Row { get; }
-        
+
+        internal string Text { get; set; }
+
+        public int Row { get; internal set; } = -1;
+
         public int Column { get; }
 
 
-        public DataGridCell(int row, int column, string text)
+        public DataGridCell(int column)
         {
-            Row = row;
             Column = column;
-            Text = text;
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -48,5 +46,10 @@ namespace Ruthenium
             VisualChildren.Clear();
             VisualChildren.Add(TextBlock);
         }
+
+        public override string ToString()
+        {
+            return $"Row: {Row}, Column: {Column}, Text: {Text}";
+        }
     }
-}    
+}

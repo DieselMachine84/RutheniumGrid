@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 
 namespace Ruthenium
@@ -36,10 +37,17 @@ namespace Ruthenium
         private void InitializeComponent()
         {
             Panel = new DataGridPanel();
-            Content = new ScrollViewer()
-            {
-                Content = Panel
-            };
+            ScrollViewer scrollViewer = new ScrollViewer();
+            scrollViewer.Content = Panel;
+            scrollViewer.TemplateApplied += ScrollViewerOnTemplateApplied;
+            Content = scrollViewer;
+        }
+
+        private void ScrollViewerOnTemplateApplied(object sender, TemplateAppliedEventArgs e)
+        {
+            ScrollViewer scrollViewer = (ScrollViewer) sender;
+            ScrollContentPresenter presenter = (ScrollContentPresenter) scrollViewer.Presenter;
+            presenter.CanHorizontallyScroll = false;
         }
 
         protected void ItemsSourceChanged(AvaloniaPropertyChangedEventArgs e)
