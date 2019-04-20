@@ -7,9 +7,15 @@ namespace Ruthenium
     {
         private TextBlock TextBlock { get; set; }
 
-        internal string Text { get; set; }
+        internal string Text
+        {
+            get => TextBlock.Text;
+            set => TextBlock.Text = value;
+        }
 
-        public int Row { get; internal set; } = -1;
+        internal int Row { get; set; } = -1;
+
+        internal int VisibleRow { get; set; } = -1;
 
         public int Column { get; }
 
@@ -17,6 +23,7 @@ namespace Ruthenium
         public DataGridCell(int column)
         {
             Column = column;
+            TextBlock = new TextBlock() {Margin = new Thickness(1.0)};
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -40,7 +47,6 @@ namespace Ruthenium
         //TODO why this code is within ApplyTemplate?
         public override void ApplyTemplate()
         {
-            TextBlock = new TextBlock() {Text = Text, Margin = new Thickness(1.0)};
             LogicalChildren.Clear();
             LogicalChildren.Add(TextBlock);
             VisualChildren.Clear();
