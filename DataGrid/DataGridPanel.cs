@@ -136,8 +136,6 @@ namespace Ruthenium
             CalcAccumulatedColumnRowSizes();
             UpdateGridLines();
             Viewport = new Size(availableSize.Width, row - firstRow - 2 + firstVisibleRowVisiblePart + lastVisibleRowVisiblePart);
-            //TODO is it a right place?
-            ((ILogicalScrollable)this).InvalidateScroll?.Invoke();
             return new Size(ColumnWidths.Sum(), viewportRowsHeight);
 
 
@@ -268,6 +266,8 @@ namespace Ruthenium
                         cell.DesiredSize.Width,
                         cell.DesiredSize.Height));
             }
+            //TODO is it a right place?
+            ((ILogicalScrollable)this).InvalidateScroll?.Invoke();
             return finalSize;
         }
 
