@@ -32,7 +32,7 @@ namespace Ruthenium.TestApp
                     quotient = quotient / NumLetters - 1;
                     text.Insert(0, (char) (65 + remainder));
                 } while (quotient >= 0);
-                dataSource.Add(new GridData() { Id = i + 1, Text = text.ToString() });
+                dataSource.Add(new GridData() { Id = i, Text = text.ToString() });
             }
             return dataSource;
         }

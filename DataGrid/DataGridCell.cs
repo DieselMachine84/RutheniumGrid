@@ -24,13 +24,12 @@ namespace Ruthenium
         {
             Column = column;
             TextBlock = new TextBlock() {Margin = new Thickness(1.0)};
+            LogicalChildren.Add(TextBlock);
+            VisualChildren.Add(TextBlock);
         }
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            if (TextBlock == null)
-                return Size.Empty;
-            
             TextBlock.Measure(availableSize);
             return TextBlock.DesiredSize;
         }
@@ -42,15 +41,6 @@ namespace Ruthenium
             
             TextBlock.Arrange(new Rect(finalSize));
             return finalSize;
-        }
-
-        //TODO why this code is within ApplyTemplate?
-        public override void ApplyTemplate()
-        {
-            LogicalChildren.Clear();
-            LogicalChildren.Add(TextBlock);
-            VisualChildren.Clear();
-            VisualChildren.Add(TextBlock);
         }
 
         public override string ToString()

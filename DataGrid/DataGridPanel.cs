@@ -12,6 +12,8 @@ namespace Ruthenium
 {
     public class DataGridPanel : Control, ILogicalScrollable
     {
+        private const double GridLineThickness = 1.0;
+        
         private Vector _offset = new Vector(0.0, 0.0);
         
         private DataController Controller { get; } = new DataController();
@@ -82,13 +84,24 @@ namespace Ruthenium
 
                 for (int column = 0; column < Columns.Count; column++)
                 {
+                    bool cellNeedsMeasure = false;
                     var cell = Cells[cellIndex + column];
-                    cell.IsVisible = true;
                     cell.VisibleRow = visibleRowIndex;
                     if (cell.Row != row)
                     {
                         cell.Row = row;
                         cell.Text = Controller.GetPropertyText(row, Columns[column].FieldName);
+                        cellNeedsMeasure = true;
+                    }
+                    if (!cell.IsVisible)
+                    {
+                        cell.IsVisible = true;
+                        cellNeedsMeasure = true;
+                    }
+
+                    if (cellNeedsMeasure)
+                    {
+                        cell.InvalidateMeasure();
                         cell.Measure(Size.Infinity);
                     }
 
@@ -99,6 +112,8 @@ namespace Ruthenium
                 }
 
                 viewportRowsHeight += RowHeights[visibleRowIndex];
+                //TODO first grid line is not taking into account
+                viewportRowsHeight += GridLineThickness;
                 if (visibleRowIndex == 0)
                 {
                     double firstRowHiddenPart = Offset.Y - offsetFloor;
@@ -111,19 +126,17 @@ namespace Ruthenium
                     lastVisibleRowVisiblePart = (RowHeights[visibleRowIndex] - (viewportRowsHeight - availableSize.Height)) / RowHeights[visibleRowIndex];
                 }
 
-                //TODO first grid line is not taking into account
-                viewportRowsHeight += 1.0; //horizontal grid line
-
                 row++;
                 cellIndex = Cells.GetRowCellIndex(row);
             }
 
+            Cells.OptimizeFreeCells(row);
             for (int i = row - firstRow; i < RowHeights.Count; i++)
                 RowHeights[i] = Double.NaN;
             CalcAccumulatedColumnRowSizes();
             UpdateGridLines();
-            Cells.OptimizeFreeCells(row);
             Viewport = new Size(availableSize.Width, row - firstRow - 2 + firstVisibleRowVisiblePart + lastVisibleRowVisiblePart);
+            //TODO is it a right place?
             ((ILogicalScrollable)this).InvalidateScroll?.Invoke();
             return new Size(ColumnWidths.Sum(), viewportRowsHeight);
 
@@ -157,9 +170,9 @@ namespace Ruthenium
                 for (int i = 0; i < AccumulatedColumnWidths.Count; i++)
                 {
                     if (i != 0)
-                        AccumulatedColumnWidths[i] = AccumulatedColumnWidths[i - 1] + ColumnWidths[i - 1] + 1.0;
+                        AccumulatedColumnWidths[i] = AccumulatedColumnWidths[i - 1] + ColumnWidths[i - 1] + GridLineThickness;
                     else
-                        AccumulatedColumnWidths[i] = /*AccumulatedColumnHeightsStart + */ 1.0;
+                        AccumulatedColumnWidths[i] = /*AccumulatedColumnHeightsStart + */ GridLineThickness;
                 }
 
                 if (AccumulatedRowHeights.Count != RowHeights.Count + 1)
@@ -173,57 +186,39 @@ namespace Ruthenium
                     if (i != 0)
                     {
                         if (!Double.IsNaN(RowHeights[i - 1]))
-                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + 1.0;
+                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + GridLineThickness;
                         else
                             AccumulatedRowHeights[i] = Double.NaN;
                     }
                     else
                     {
-                        AccumulatedRowHeights[i] = AccumulatedRowHeightsStart + 1.0;
+                        AccumulatedRowHeights[i] = AccumulatedRowHeightsStart + GridLineThickness;
                     }
                 }
             }
 
             void UpdateGridLines()
             {
-                if (ColumnLines.Count != AccumulatedColumnWidths.Count)
+                for (int i = ColumnLines.Count; i < AccumulatedColumnWidths.Count; i++)
                 {
-                    foreach (var columnLine in ColumnLines)
-                    {
-                        LogicalChildren.Remove(columnLine);
-                        VisualChildren.Remove(columnLine);
-                    }
-                    ColumnLines.Clear();
-                    for (int i = 0; i < AccumulatedColumnWidths.Count; i++)
-                    {
-                        Line line = new Line();
-                        line.Stroke = LineBrush;
-                        line.StrokeThickness = 1.0;
-                        ColumnLines.Add(line);
-                        LogicalChildren.Add(line);
-                        VisualChildren.Add(line);
-                    }
+                    Line line = new Line();
+                    line.Stroke = LineBrush;
+                    line.StrokeThickness = GridLineThickness;
+                    ColumnLines.Add(line);
+                    LogicalChildren.Add(line);
+                    VisualChildren.Add(line);
                 }
 
                 int lastAccumulatedColumnWidthsIndex = AccumulatedColumnWidths.Count - 1;
 
-                if (RowLines.Count != AccumulatedRowHeights.Count)
+                for (int i = RowLines.Count; i < AccumulatedRowHeights.Count; i++)
                 {
-                    foreach (var rowLine in RowLines)
-                    {
-                        LogicalChildren.Remove(rowLine);
-                        VisualChildren.Remove(rowLine);
-                    }
-                    RowLines.Clear();
-                    for (int i = 0; i < AccumulatedRowHeights.Count; i++)
-                    {
-                        Line line = new Line();
-                        line.Stroke = LineBrush;
-                        line.StrokeThickness = 1.0;
-                        RowLines.Add(line);
-                        LogicalChildren.Add(line);
-                        VisualChildren.Add(line);
-                    }
+                    Line line = new Line();
+                    line.Stroke = LineBrush;
+                    line.StrokeThickness = GridLineThickness;
+                    RowLines.Add(line);
+                    LogicalChildren.Add(line);
+                    VisualChildren.Add(line);
                 }
 
                 int lastAccumulatedRowHeightsIndex = AccumulatedRowHeights.Count - 1;
@@ -238,16 +233,27 @@ namespace Ruthenium
 
                 for (int i = 0; i < ColumnLines.Count; i++)
                 {
-                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i] - 1.0, 0.0);
-                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i] - 1.0,
+                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i] - GridLineThickness, 0.0);
+                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i] - GridLineThickness,
                         AccumulatedRowHeights[lastAccumulatedRowHeightsIndex]);
                 }
 
                 for (int i = 0; i < RowLines.Count; i++)
                 {
-                    RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i] - 1.0);
-                    RowLines[i].EndPoint = new Point(AccumulatedColumnWidths[lastAccumulatedColumnWidthsIndex],
-                        AccumulatedRowHeights[i] - 1.0);
+                    bool isVisibleLine = !Double.IsNaN(AccumulatedRowHeights[i]);
+                    RowLines[i].IsVisible = isVisibleLine;
+                    if (isVisibleLine)
+                    {
+                        RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i] - GridLineThickness);
+                        RowLines[i].EndPoint = new Point(AccumulatedColumnWidths[lastAccumulatedColumnWidthsIndex],
+                            AccumulatedRowHeights[i] - GridLineThickness);
+                    }
+                }
+
+                foreach (var line in ColumnLines.Concat(RowLines))
+                {
+                    line.InvalidateMeasure();
+                    line.Measure(Size.Infinity);
                 }
             }
         }
@@ -262,7 +268,6 @@ namespace Ruthenium
                         cell.DesiredSize.Width,
                         cell.DesiredSize.Height));
             }
-
             return finalSize;
         }
 
