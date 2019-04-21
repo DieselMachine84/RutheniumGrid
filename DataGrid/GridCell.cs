@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 
-namespace Ruthenium
+namespace Ruthenium.DataGrid
 {
-    public class DataGridCell : Control
+    public class GridCell : Control
     {
         private TextBlock TextBlock { get; set; }
 
@@ -20,7 +20,7 @@ namespace Ruthenium
         public int Column { get; }
 
 
-        public DataGridCell(int column)
+        public GridCell(int column)
         {
             Column = column;
             TextBlock = new TextBlock() {Margin = new Thickness(1.0)};

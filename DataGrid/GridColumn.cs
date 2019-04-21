@@ -1,12 +1,12 @@
 using System;
 using Avalonia;
 
-namespace Ruthenium
+namespace Ruthenium.DataGrid
 {
-    public class DataGridColumn : AvaloniaObject
+    public class GridColumn : AvaloniaObject
     {
-        public static readonly DirectProperty<DataGridColumn, string> FieldNameProperty =
-            AvaloniaProperty.RegisterDirect<DataGridColumn, string>(nameof(FieldName),
+        public static readonly DirectProperty<GridColumn, string> FieldNameProperty =
+            AvaloniaProperty.RegisterDirect<GridColumn, string>(nameof(FieldName),
                 o => o.FieldName, (o, v) => o.FieldName = v);
         
         private string _fieldName = String.Empty;

@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <AssemblyName>Ruthenium.DataGrid</AssemblyName>
-        <RootNamespace>Ruthenium</RootNamespace>
+        <RootNamespace>Ruthenium.DataGrid</RootNamespace>
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 

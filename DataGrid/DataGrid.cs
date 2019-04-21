@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 
-namespace Ruthenium
+namespace Ruthenium.DataGrid
 {
     public class DataGrid : UserControl
     {
@@ -14,7 +14,7 @@ namespace Ruthenium
 
         private object _itemsSource;
         
-        private DataGridPanel Panel { get; set; }
+        private GridPanel Panel { get; set; }
 
         public object ItemsSource
         {
@@ -22,7 +22,7 @@ namespace Ruthenium
             set => SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
         }
 
-        public List<DataGridColumn> Columns { get; } = new List<DataGridColumn>();
+        public List<GridColumn> Columns { get; } = new List<GridColumn>();
 
         static DataGrid()
         {
@@ -36,7 +36,7 @@ namespace Ruthenium
 
         private void InitializeComponent()
         {
-            Panel = new DataGridPanel();
+            Panel = new GridPanel();
             ScrollViewer scrollViewer = new ScrollViewer();
             scrollViewer.Content = Panel;
             scrollViewer.TemplateApplied += ScrollViewerOnTemplateApplied;

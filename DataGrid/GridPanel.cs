@@ -8,9 +8,9 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 
-namespace Ruthenium
+namespace Ruthenium.DataGrid
 {
-    public class DataGridPanel : Control, ILogicalScrollable
+    public class GridPanel : Control, ILogicalScrollable
     {
         private const double GridLineThickness = 1.0;
         
@@ -18,9 +18,9 @@ namespace Ruthenium
         
         private DataController Controller { get; } = new DataController();
 
-        internal List<DataGridColumn> Columns { get; } = new List<DataGridColumn>();
+        internal List<GridColumn> Columns { get; } = new List<GridColumn>();
 
-        private DataGridCells Cells { get; set; }
+        private GridCells Cells { get; set; }
 
 
         private List<double> ColumnWidths { get; } = new List<double>();
@@ -56,7 +56,7 @@ namespace Ruthenium
         }
 
 
-        public DataGridPanel()
+        public GridPanel()
         {
             LineBrush = new SolidColorBrush();
             LineBrush.Color = Colors.Black;
@@ -277,12 +277,12 @@ namespace Ruthenium
             VisualChildren.Clear();
             
             Controller.SetItemsSource(itemsSource);
-            Action<DataGridCell> newCellPanelAction = cell =>
+            Action<GridCell> newCellPanelAction = cell =>
             {
                 LogicalChildren.Add(cell);
                 VisualChildren.Add(cell);
             };
-            Cells = new DataGridCells(Columns.Count, newCellPanelAction);
+            Cells = new GridCells(Columns.Count, newCellPanelAction);
         }
 
 

@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ruthenium
+namespace Ruthenium.DataGrid
 {
-    internal class DataGridCells : List<DataGridCell>
+    internal class GridCells : List<GridCell>
     {
         private const int NewRowsCreationCount = 8;
 
         private readonly int _columnsCount;
-        private readonly Action<DataGridCell> _newCellPanelAction;
+        private readonly Action<GridCell> _newCellPanelAction;
         private int _firstRowCellIndex;
 
         private void AddEmptyRows()
@@ -18,7 +18,7 @@ namespace Ruthenium
             {
                 for (int column = 0; column < _columnsCount; column++)
                 {
-                    var cell = new DataGridCell(column);
+                    var cell = new GridCell(column);
                     if (_firstRowCellIndex > 0)
                     {
                         Insert(_firstRowCellIndex, cell);
@@ -49,7 +49,7 @@ namespace Ruthenium
             }
         }
 
-        public DataGridCells(int columnsCount, Action<DataGridCell> newCellPanelAction)
+        public GridCells(int columnsCount, Action<GridCell> newCellPanelAction)
         {
             _columnsCount = columnsCount;
             _newCellPanelAction = newCellPanelAction;
