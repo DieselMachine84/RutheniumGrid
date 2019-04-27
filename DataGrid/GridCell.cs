@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 
@@ -5,47 +6,38 @@ namespace Ruthenium.DataGrid
 {
     public class GridCell : Control
     {
-        private TextBlock TextBlock { get; set; }
-
-        internal string Text
-        {
-            get => TextBlock.Text;
-            set => TextBlock.Text = value;
-        }
+        private IControl Control { get; }
 
         internal int Row { get; set; } = -1;
 
         internal int VisibleRow { get; set; } = -1;
 
-        public int Column { get; }
+        public GridColumn Column { get; }
 
 
-        public GridCell(int column)
+        public GridCell(GridColumn column)
         {
             Column = column;
-            TextBlock = new TextBlock() {Margin = new Thickness(1.0)};
-            LogicalChildren.Add(TextBlock);
-            VisualChildren.Add(TextBlock);
+            Control = column.CreateControl();
+            LogicalChildren.Add(Control);
+            VisualChildren.Add(Control);
         }
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            TextBlock.Measure(availableSize);
-            return TextBlock.DesiredSize;
+            Control.Measure(availableSize);
+            return Control.DesiredSize;
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            if (TextBlock == null)
-                return Size.Empty;
-            
-            TextBlock.Arrange(new Rect(finalSize));
+            Control.Arrange(new Rect(finalSize));
             return finalSize;
         }
 
         public override string ToString()
         {
-            return $"Row: {Row}, Column: {Column}, Text: {Text}";
+            return $"Row: {Row}, Column: {Column.Index}, Text: {DataContext?.ToString() ?? String.Empty}";
         }
     }
 }

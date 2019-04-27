@@ -58,6 +58,8 @@ namespace Ruthenium.DataGrid
         protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
         {
             base.OnTemplateApplied(e);
+            for (int i = 0; i < Columns.Count; i++)
+                Columns[i].Index = i;
             Panel.Columns.AddRange(Columns);
             Panel.RecreateCells(ItemsSource);
         }

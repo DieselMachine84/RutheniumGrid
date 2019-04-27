@@ -90,7 +90,7 @@ namespace Ruthenium.DataGrid
                     if (cell.Row != row)
                     {
                         cell.Row = row;
-                        cell.Text = Controller.GetPropertyText(row, Columns[column].FieldName);
+                        cell.DataContext = Controller.GetProperty(row, Columns[column].FieldName);
                         cellNeedsMeasure = true;
                     }
                     if (!cell.IsVisible)
@@ -105,7 +105,7 @@ namespace Ruthenium.DataGrid
                         cell.Measure(Size.Infinity);
                     }
 
-                    ColumnWidths[cell.Column] = Math.Max(ColumnWidths[cell.Column], cell.DesiredSize.Width);
+                    ColumnWidths[cell.Column.Index] = Math.Max(ColumnWidths[cell.Column.Index], cell.DesiredSize.Width);
                     if (visibleRowIndex == RowHeights.Count)
                         RowHeights.Add(0.0);
                     RowHeights[visibleRowIndex] = Math.Max(RowHeights[visibleRowIndex], cell.DesiredSize.Height);
@@ -261,7 +261,7 @@ namespace Ruthenium.DataGrid
             foreach (var cell in Cells)
             {
                 if (cell.IsVisible)
-                    cell.Arrange(new Rect(AccumulatedColumnWidths[cell.Column],
+                    cell.Arrange(new Rect(AccumulatedColumnWidths[cell.Column.Index],
                         AccumulatedRowHeights[cell.VisibleRow],
                         cell.DesiredSize.Width,
                         cell.DesiredSize.Height));
@@ -282,7 +282,7 @@ namespace Ruthenium.DataGrid
                 LogicalChildren.Add(cell);
                 VisualChildren.Add(cell);
             };
-            Cells = new GridCells(Columns.Count, newCellPanelAction);
+            Cells = new GridCells(Columns, newCellPanelAction);
         }
 
 

@@ -3,10 +3,27 @@
         xmlns:rut="clr-namespace:Ruthenium.DataGrid;assembly=Ruthenium.DataGrid"
         x:Class="Ruthenium.TestApp.MainWindow"
         Title="Ruthenium DataGrid Test">
+        <Window.Resources>
+                <DataTemplate x:Key="rect">
+                        <Grid>
+                                <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" Grid.Row="0" Fill="Red"
+                                           Width="{Binding Width}" Height="{Binding Height}" />
+                                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Text}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                </DataTemplate>
+        </Window.Resources>
         <rut:DataGrid Name="grid" ItemsSource="{Binding}">
                 <rut:DataGrid.Columns>
-                        <rut:GridColumn FieldName="Id" />
-                        <rut:GridColumn FieldName="Text" />
+                        <rut:GridTextColumn FieldName="Id" />
+                        <rut:GridTextColumn FieldName="Text" />
+                        <rut:GridTemplateColumn FieldName="RectData" CellTemplate="{StaticResource rect}" />
                 </rut:DataGrid.Columns>
         </rut:DataGrid>
 </Window>

@@ -62,17 +62,17 @@ namespace Ruthenium.DataGrid
             }
         }
 
-        public string GetPropertyText(int row, string propertyName)
+        public object GetProperty(int row, string propertyName)
         {
             object rowData = SourceList?[row];
             if (rowData == null)
-                return String.Empty;
+                return null;
             
             PropertyInfo propertyInfo = Properties.FirstOrDefault(p => p.Name == propertyName);
             if (propertyInfo == null)
-                return String.Empty;
+                return null;
 
-            return propertyInfo.GetValue(rowData)?.ToString() ?? String.Empty;
+            return propertyInfo.GetValue(rowData);
         }
     }
 }

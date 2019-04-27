@@ -8,7 +8,7 @@ namespace Ruthenium.DataGrid
     {
         private const int NewRowsCreationCount = 8;
 
-        private readonly int _columnsCount;
+        private readonly List<GridColumn> _columns;
         private readonly Action<GridCell> _newCellPanelAction;
         private int _firstRowCellIndex;
 
@@ -16,7 +16,7 @@ namespace Ruthenium.DataGrid
         {
             for (int i = 0; i < NewRowsCreationCount; i++)
             {
-                for (int column = 0; column < _columnsCount; column++)
+                foreach (var column in _columns)
                 {
                     var cell = new GridCell(column);
                     if (_firstRowCellIndex > 0)
@@ -35,7 +35,7 @@ namespace Ruthenium.DataGrid
 
         private void RemoveEmptyRows(int optimalRowsCount)
         {
-            while (Count > optimalRowsCount * _columnsCount)
+            while (Count > optimalRowsCount * _columns.Count)
             {
                 if (_firstRowCellIndex > 0)
                 {
@@ -49,9 +49,9 @@ namespace Ruthenium.DataGrid
             }
         }
 
-        public GridCells(int columnsCount, Action<GridCell> newCellPanelAction)
+        public GridCells(List<GridColumn> columns, Action<GridCell> newCellPanelAction)
         {
-            _columnsCount = columnsCount;
+            _columns = columns;
             _newCellPanelAction = newCellPanelAction;
             AddEmptyRows();
             _firstRowCellIndex = 0;
@@ -70,9 +70,9 @@ namespace Ruthenium.DataGrid
             {
                 if (firstRow < oldFirstRow)
                 {
-                    if ((oldFirstRow - firstRow) * _columnsCount < Count)
+                    if ((oldFirstRow - firstRow) * _columns.Count < Count)
                     {
-                        _firstRowCellIndex -= (oldFirstRow - firstRow) * _columnsCount;
+                        _firstRowCellIndex -= (oldFirstRow - firstRow) * _columns.Count;
                         if (_firstRowCellIndex < 0)
                             _firstRowCellIndex += Count;
                     }
@@ -83,9 +83,9 @@ namespace Ruthenium.DataGrid
                 }
                 else
                 {
-                    if ((firstRow - oldFirstRow) * _columnsCount < Count)
+                    if ((firstRow - oldFirstRow) * _columns.Count < Count)
                     {
-                        _firstRowCellIndex += (firstRow - oldFirstRow) * _columnsCount;
+                        _firstRowCellIndex += (firstRow - oldFirstRow) * _columns.Count;
                         if (_firstRowCellIndex >= Count)
                             _firstRowCellIndex -= Count;
                     }
@@ -102,12 +102,12 @@ namespace Ruthenium.DataGrid
         public int GetRowCellIndex(int row)
         {
             int firstRow = this[_firstRowCellIndex].Row;
-            while ((row - firstRow) * _columnsCount >= Count)
+            while ((row - firstRow) * _columns.Count >= Count)
             {
                 AddEmptyRows();
             }
 
-            int rowCellIndex = _firstRowCellIndex + (row - firstRow) * _columnsCount;
+            int rowCellIndex = _firstRowCellIndex + (row - firstRow) * _columns.Count;
             if (rowCellIndex >= Count)
                 rowCellIndex -= Count;
             return rowCellIndex;
@@ -116,11 +116,9 @@ namespace Ruthenium.DataGrid
         public void OptimizeFreeCells(int beyondLastRow)
         {
             int firstRow = this[_firstRowCellIndex].Row;
-            if (beyondLastRow - firstRow < NewRowsCreationCount)
-                AddEmptyRows();
             RemoveEmptyRows(beyondLastRow - firstRow + 4 * NewRowsCreationCount);
 
-            int freeCellIndex = _firstRowCellIndex + (beyondLastRow - firstRow) * _columnsCount;
+            int freeCellIndex = _firstRowCellIndex + (beyondLastRow - firstRow) * _columns.Count;
             if (freeCellIndex >= Count)
                 freeCellIndex -= Count;
             while (freeCellIndex != _firstRowCellIndex)
@@ -134,13 +132,13 @@ namespace Ruthenium.DataGrid
 
         public override string ToString()
         {
-            if (_columnsCount == 0)
+            if (_columns.Count == 0)
                 return String.Empty;
             
             StringBuilder result = new StringBuilder();
             for (int i = 0; i < Count; i++)
             {
-                if (i % _columnsCount == 0)
+                if (i % _columns.Count == 0)
                     result.AppendLine();
                 result.Append(this[i]);
                 result.Append("    ");
