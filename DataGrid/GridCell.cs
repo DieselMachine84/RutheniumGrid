@@ -6,7 +6,7 @@ namespace Ruthenium.DataGrid
 {
     public class GridCell : Control
     {
-        private IControl Control { get; }
+        private IControl Control { get; set; }
 
         internal int Row { get; set; } = -1;
 
@@ -14,11 +14,26 @@ namespace Ruthenium.DataGrid
 
         public GridColumn Column { get; }
 
-
         public GridCell(GridColumn column)
         {
             Column = column;
-            Control = column.CreateControl();
+            if (Column.DynamicCreateControlsForCells)
+            {
+                DataContextChanged += OnDataContextChanged;
+            }
+            else
+            {
+                Control = Column.CreateControl();
+                LogicalChildren.Add(Control);
+                VisualChildren.Add(Control);
+            }
+        }
+
+        private void OnDataContextChanged(object sender, EventArgs e)
+        {
+            LogicalChildren.Remove(Control);
+            VisualChildren.Remove(Control);
+            Control = Column.DynamicCreateControl(this);
             LogicalChildren.Add(Control);
             VisualChildren.Add(Control);
         }

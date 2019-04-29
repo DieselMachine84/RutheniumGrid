@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using Ruthenium.DataGrid;
 
 namespace Ruthenium.TestApp
 {
@@ -9,6 +13,10 @@ namespace Ruthenium.TestApp
         public double Width { get; set; }
         public double Height { get; set; }
         public string Text => $"{Width}X{Height}";
+        public override string ToString()
+        {
+            return Text;
+        }
     }
 
     public class GridData
@@ -19,6 +27,23 @@ namespace Ruthenium.TestApp
         public override string ToString()
         {
             return $"{Id}   {Text}";
+        }
+    }
+
+    public class ShapeTemplateSelector : DataTemplateSelector
+    {
+        public override IDataTemplate SelectTemplate(object item, AvaloniaObject container)
+        {
+            RectData rectData = item as RectData;
+            if (rectData == null)
+                return null;
+
+            GridCell cell = (GridCell) container;
+            int width = Convert.ToInt32(rectData.Width);
+            if (width % 10 == 0)
+                return cell.FindResource("ellipse") as IDataTemplate;
+            else
+                return cell.FindResource("rect") as IDataTemplate;
         }
     }
 

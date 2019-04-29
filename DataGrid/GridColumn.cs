@@ -11,6 +11,8 @@ namespace Ruthenium.DataGrid
                 o => o.FieldName, (o, v) => o.FieldName = v);
 
         private string _fieldName = String.Empty;
+        
+        protected internal virtual bool DynamicCreateControlsForCells => false;
 
         public string FieldName
         {
@@ -21,5 +23,7 @@ namespace Ruthenium.DataGrid
         public int Index { get; internal set; }
 
         public abstract IControl CreateControl();
+
+        public virtual IControl DynamicCreateControl(GridCell cell) => null;
     }
 }
