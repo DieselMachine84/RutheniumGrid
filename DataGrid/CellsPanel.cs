@@ -10,7 +10,7 @@ using Avalonia.Media;
 
 namespace Ruthenium.DataGrid
 {
-    public class GridPanel : Control, ILogicalScrollable
+    public class CellsPanel : Control, ILogicalScrollable
     {
         private const double GridLineThickness = 1.0;
         
@@ -56,7 +56,7 @@ namespace Ruthenium.DataGrid
         }
 
 
-        public GridPanel()
+        public CellsPanel()
         {
             LineBrush = new SolidColorBrush();
             LineBrush.Color = Colors.Black;

@@ -14,7 +14,7 @@ namespace Ruthenium.DataGrid
 
         private object _itemsSource;
         
-        private GridPanel Panel { get; set; }
+        private CellsPanel CellsPanel { get; set; }
 
         public object ItemsSource
         {
@@ -36,9 +36,9 @@ namespace Ruthenium.DataGrid
 
         private void InitializeComponent()
         {
-            Panel = new GridPanel();
+            CellsPanel = new CellsPanel();
             ScrollViewer scrollViewer = new ScrollViewer();
-            scrollViewer.Content = Panel;
+            scrollViewer.Content = CellsPanel;
             scrollViewer.TemplateApplied += ScrollViewerOnTemplateApplied;
             Content = scrollViewer;
         }
@@ -52,7 +52,7 @@ namespace Ruthenium.DataGrid
 
         protected void ItemsSourceChanged(AvaloniaPropertyChangedEventArgs e)
         {
-            Panel.RecreateCells(e.NewValue);
+            CellsPanel.RecreateCells(e.NewValue);
         }
 
         protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
@@ -60,8 +60,8 @@ namespace Ruthenium.DataGrid
             base.OnTemplateApplied(e);
             for (int i = 0; i < Columns.Count; i++)
                 Columns[i].Index = i;
-            Panel.Columns.AddRange(Columns);
-            Panel.RecreateCells(ItemsSource);
+            CellsPanel.Columns.AddRange(Columns);
+            CellsPanel.RecreateCells(ItemsSource);
         }
     }
 }
