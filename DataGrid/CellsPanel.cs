@@ -5,25 +5,32 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
-using Avalonia.Input;
-using Avalonia.Media;
 
 namespace Ruthenium.DataGrid
 {
-    public class CellsPanel : Control, ILogicalScrollable
+    public class CellsPanel : TemplatedControl
     {
-        private const double GridLineThickness = 1.0;
-        
-        private Vector _offset = new Vector(0.0, 0.0);
-        
-        private DataController Controller { get; } = new DataController();
-
-        internal List<GridColumn> Columns { get; } = new List<GridColumn>();
+        private DataGrid GridControl { get; }
 
         private GridCells Cells { get; set; }
 
+        private ScrollBar ScrollBar { get; } = new ScrollBar
+        {
+            Orientation = Orientation.Vertical, Visibility = ScrollBarVisibility.Visible
+        };
 
-        private List<double> ColumnWidths { get; } = new List<double>();
+        private double _scrollOffset;
+
+        private double ScrollOffset
+        {
+            get => _scrollOffset;
+            set
+            {
+                _scrollOffset = value;
+                _scrollOffset = Math.Max(_scrollOffset, 0.0);
+                _scrollOffset = Math.Min(_scrollOffset, GridControl.Controller.Count - 0.001);
+            }
+        }
 
         private List<double> AccumulatedColumnWidths { get; } = new List<double>();
 
@@ -33,43 +40,31 @@ namespace Ruthenium.DataGrid
 
         private double AccumulatedRowHeightsStart { get; set; }
 
-        private SolidColorBrush LineBrush { get; }
-
-
         private List<Line> ColumnLines { get; } = new List<Line>();
 
         private List<Line> RowLines { get; } = new List<Line>();
 
-
-        public Size Extent => new Size(DesiredSize.Width, Controller.Count);
-
-        public Size Viewport { get; private set; } = Size.Empty;
-
-        public Vector Offset
+        
+        public CellsPanel(DataGrid gridControl)
         {
-            get => _offset;
-            set
-            {
-                _offset = value;
-                InvalidateMeasure();
-            }
+            GridControl = gridControl;
+            ScrollBar.Scroll += ScrollBarOnScroll;
         }
 
-
-        public CellsPanel()
+        private void ScrollBarOnScroll(object sender, ScrollEventArgs e)
         {
-            LineBrush = new SolidColorBrush();
-            LineBrush.Color = Colors.Black;
+            ScrollOffset = e.NewValue;
+            InvalidateMeasure();
         }
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            if (Columns.Count == 0)
+            if (GridControl.Columns.Count == 0)
                 return Size.Empty;
 
             ZeroColumnRowSizes();
 
-            double offsetFloor = Math.Floor(Offset.Y);
+            double offsetFloor = Math.Floor(ScrollOffset);
             int firstRow = Convert.ToInt32(offsetFloor);
             int row = firstRow;
             int cellIndex = Cells.GetFirstRowCellIndex(row);
@@ -77,12 +72,12 @@ namespace Ruthenium.DataGrid
             double firstVisibleRowVisiblePart = 1.0;
             double lastVisibleRowVisiblePart = 1.0;
 
-            //TODO very big one and two rows
-            while (viewportRowsHeight < availableSize.Height && row < Controller.Count)
+            //TODO zero, very big one and two rows
+            while (viewportRowsHeight < availableSize.Height && row < GridControl.Controller.Count)
             {
                 int visibleRowIndex = row - firstRow;
 
-                for (int column = 0; column < Columns.Count; column++)
+                for (int column = 0; column < GridControl.Columns.Count; column++)
                 {
                     bool cellNeedsMeasure = false;
                     var cell = Cells[cellIndex + column];
@@ -90,7 +85,7 @@ namespace Ruthenium.DataGrid
                     if (cell.Row != row)
                     {
                         cell.Row = row;
-                        cell.DataContext = Controller.GetProperty(row, Columns[column].FieldName);
+                        cell.DataContext = GridControl.Controller.GetProperty(row, GridControl.Columns[column].FieldName);
                         cellNeedsMeasure = true;
                     }
                     if (!cell.IsVisible)
@@ -105,18 +100,15 @@ namespace Ruthenium.DataGrid
                         cell.Measure(Size.Infinity);
                     }
 
-                    ColumnWidths[cell.Column.Index] = Math.Max(ColumnWidths[cell.Column.Index], cell.DesiredSize.Width);
                     if (visibleRowIndex == RowHeights.Count)
                         RowHeights.Add(0.0);
                     RowHeights[visibleRowIndex] = Math.Max(RowHeights[visibleRowIndex], cell.DesiredSize.Height);
                 }
 
                 viewportRowsHeight += RowHeights[visibleRowIndex];
-                //TODO first grid line is not taking into account
-                viewportRowsHeight += GridLineThickness;
                 if (visibleRowIndex == 0)
                 {
-                    double firstRowHiddenPart = Offset.Y - offsetFloor;
+                    double firstRowHiddenPart = ScrollOffset - offsetFloor;
                     firstVisibleRowVisiblePart = 1.0 - firstRowHiddenPart;
                     viewportRowsHeight *= firstVisibleRowVisiblePart;
                     AccumulatedRowHeightsStart = -RowHeights[0] * firstRowHiddenPart;
@@ -125,6 +117,7 @@ namespace Ruthenium.DataGrid
                 {
                     lastVisibleRowVisiblePart = (RowHeights[visibleRowIndex] - (viewportRowsHeight - availableSize.Height)) / RowHeights[visibleRowIndex];
                 }
+                viewportRowsHeight += DataGrid.GridLineThickness;
 
                 row++;
                 cellIndex = Cells.GetRowCellIndex(row);
@@ -135,21 +128,12 @@ namespace Ruthenium.DataGrid
                 RowHeights[i] = Double.NaN;
             CalcAccumulatedColumnRowSizes();
             UpdateGridLines();
-            Viewport = new Size(availableSize.Width, row - firstRow - 2 + firstVisibleRowVisiblePart + lastVisibleRowVisiblePart);
-            return new Size(ColumnWidths.Sum(), viewportRowsHeight);
+            UpdateScrollBar();
+            return new Size(AccumulatedColumnWidths.Last(), viewportRowsHeight);
 
 
             void ZeroColumnRowSizes()
             {
-                if (ColumnWidths.Count != Columns.Count)
-                {
-                    ColumnWidths.Clear();
-                    ColumnWidths.AddRange(Enumerable.Repeat(0.0, Columns.Count));
-                }
-                for (int i = 0; i < ColumnWidths.Count; i++)
-                {
-                    ColumnWidths[i] = 0.0;
-                }
                 for (int i = 0; i < RowHeights.Count; i++)
                 {
                     RowHeights[i] = 0.0;
@@ -158,19 +142,19 @@ namespace Ruthenium.DataGrid
 
             void CalcAccumulatedColumnRowSizes()
             {
-                if (AccumulatedColumnWidths.Count != ColumnWidths.Count + 1)
+                var columns = GridControl.Columns;
+                if (AccumulatedColumnWidths.Count != columns.Count + 1)
                 {
                     AccumulatedColumnWidths.Clear();
-                    AccumulatedColumnWidths.AddRange(Enumerable.Repeat(0.0, ColumnWidths.Count + 1));
+                    AccumulatedColumnWidths.AddRange(Enumerable.Repeat(0.0, columns.Count + 1));
                 }
 
-                //TODO AccumulatedColumnHeightsStart
                 for (int i = 0; i < AccumulatedColumnWidths.Count; i++)
                 {
                     if (i != 0)
-                        AccumulatedColumnWidths[i] = AccumulatedColumnWidths[i - 1] + ColumnWidths[i - 1] + GridLineThickness;
+                        AccumulatedColumnWidths[i] = AccumulatedColumnWidths[i - 1] + columns[i - 1].Width + DataGrid.GridLineThickness;
                     else
-                        AccumulatedColumnWidths[i] = /*AccumulatedColumnHeightsStart + */ GridLineThickness;
+                        AccumulatedColumnWidths[i] = 0.0;
                 }
 
                 if (AccumulatedRowHeights.Count != RowHeights.Count + 1)
@@ -184,24 +168,26 @@ namespace Ruthenium.DataGrid
                     if (i != 0)
                     {
                         if (!Double.IsNaN(RowHeights[i - 1]))
-                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + GridLineThickness;
+                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + DataGrid.GridLineThickness;
                         else
                             AccumulatedRowHeights[i] = Double.NaN;
                     }
                     else
                     {
-                        AccumulatedRowHeights[i] = AccumulatedRowHeightsStart + GridLineThickness;
+                        AccumulatedRowHeights[i] = AccumulatedRowHeightsStart;
+                        if (AccumulatedRowHeightsStart < -Single.Epsilon)
+                            AccumulatedRowHeights[i] += DataGrid.GridLineThickness;
                     }
                 }
             }
 
             void UpdateGridLines()
             {
-                for (int i = ColumnLines.Count; i < AccumulatedColumnWidths.Count; i++)
+                for (int i = ColumnLines.Count; i < AccumulatedColumnWidths.Count - 1; i++)
                 {
                     Line line = new Line();
-                    line.Stroke = LineBrush;
-                    line.StrokeThickness = GridLineThickness;
+                    line.Stroke = DataGrid.LineBrush;
+                    line.StrokeThickness = DataGrid.GridLineThickness;
                     ColumnLines.Add(line);
                     LogicalChildren.Add(line);
                     VisualChildren.Add(line);
@@ -209,11 +195,11 @@ namespace Ruthenium.DataGrid
 
                 int lastAccumulatedColumnWidthsIndex = AccumulatedColumnWidths.Count - 1;
 
-                for (int i = RowLines.Count; i < AccumulatedRowHeights.Count; i++)
+                for (int i = RowLines.Count; i < AccumulatedRowHeights.Count - 1; i++)
                 {
                     Line line = new Line();
-                    line.Stroke = LineBrush;
-                    line.StrokeThickness = GridLineThickness;
+                    line.Stroke = DataGrid.LineBrush;
+                    line.StrokeThickness = DataGrid.GridLineThickness;
                     RowLines.Add(line);
                     LogicalChildren.Add(line);
                     VisualChildren.Add(line);
@@ -231,20 +217,20 @@ namespace Ruthenium.DataGrid
 
                 for (int i = 0; i < ColumnLines.Count; i++)
                 {
-                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i] - GridLineThickness, 0.0);
-                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i] - GridLineThickness,
+                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i + 1] - DataGrid.GridLineThickness / 2.0, 0.0);
+                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i + 1] - DataGrid.GridLineThickness / 2.0,
                         AccumulatedRowHeights[lastAccumulatedRowHeightsIndex]);
                 }
 
                 for (int i = 0; i < RowLines.Count; i++)
                 {
-                    bool isVisibleLine = !Double.IsNaN(AccumulatedRowHeights[i]);
+                    bool isVisibleLine = !Double.IsNaN(AccumulatedRowHeights[i + 1]);
                     RowLines[i].IsVisible = isVisibleLine;
                     if (isVisibleLine)
                     {
-                        RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i] - GridLineThickness);
+                        RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i + 1] - DataGrid.GridLineThickness / 2.0);
                         RowLines[i].EndPoint = new Point(AccumulatedColumnWidths[lastAccumulatedColumnWidthsIndex],
-                            AccumulatedRowHeights[i] - GridLineThickness);
+                            AccumulatedRowHeights[i + 1] - DataGrid.GridLineThickness / 2.0);
                     }
                 }
 
@@ -254,6 +240,14 @@ namespace Ruthenium.DataGrid
                     line.Measure(Size.Infinity);
                 }
             }
+
+            void UpdateScrollBar()
+            {
+                ScrollBar.Height = availableSize.Height;
+                ScrollBar.ViewportSize = row - firstRow - 2 + firstVisibleRowVisiblePart + lastVisibleRowVisiblePart;
+                ScrollBar.InvalidateMeasure();
+                ScrollBar.Measure(Size.Infinity);
+            }
         }
 
         protected override Size ArrangeOverride(Size finalSize)
@@ -261,59 +255,33 @@ namespace Ruthenium.DataGrid
             foreach (var cell in Cells)
             {
                 if (cell.IsVisible)
+                {
+                    double width = AccumulatedColumnWidths[cell.Column.Index + 1] -
+                                   AccumulatedColumnWidths[cell.Column.Index] - DataGrid.GridLineThickness;
                     cell.Arrange(new Rect(AccumulatedColumnWidths[cell.Column.Index],
                         AccumulatedRowHeights[cell.VisibleRow],
-                        cell.DesiredSize.Width,
-                        cell.DesiredSize.Height));
+                        width, cell.DesiredSize.Height));
+                }
             }
-            //TODO is it a right place?
-            ((ILogicalScrollable)this).InvalidateScroll?.Invoke();
+            ScrollBar.Arrange(new Rect(finalSize.Width - ScrollBar.Width, 0.0, ScrollBar.Width, finalSize.Height));
             return finalSize;
         }
 
-        public void RecreateCells(object itemsSource)
+        public void RecreateCells()
         {
             LogicalChildren.Clear();
             VisualChildren.Clear();
             
-            Controller.SetItemsSource(itemsSource);
             Action<GridCell> newCellPanelAction = cell =>
             {
                 LogicalChildren.Add(cell);
                 VisualChildren.Add(cell);
             };
-            Cells = new GridCells(Columns, newCellPanelAction);
+            Cells = new GridCells(GridControl.Columns, newCellPanelAction);
+
+            LogicalChildren.Add(ScrollBar);
+            VisualChildren.Add(ScrollBar);
+            ScrollBar.Maximum = GridControl.Controller.Count;
         }
-
-
-        bool ILogicalScrollable.BringIntoView(IControl target, Rect targetRect)
-        {
-            return false;
-        }
-
-        IControl ILogicalScrollable.GetControlInDirection(NavigationDirection direction, IControl @from)
-        {
-            return null;
-        }
-
-        bool ILogicalScrollable.CanHorizontallyScroll
-        {
-            get => false;
-            set { }
-        }
-
-        bool ILogicalScrollable.CanVerticallyScroll
-        {
-            get => true;
-            set { }
-        }
-
-        bool ILogicalScrollable.IsLogicalScrollEnabled => true;
-
-        Action ILogicalScrollable.InvalidateScroll { get; set; }
-
-        Size ILogicalScrollable.ScrollSize => new Size(0.0, 1.0);
-
-        Size ILogicalScrollable.PageScrollSize => new Size(0.0, Viewport.Height - 1.0);
     }
 }

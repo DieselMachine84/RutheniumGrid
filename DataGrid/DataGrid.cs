@@ -1,20 +1,28 @@
 ﻿using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
+using Avalonia.Media;
 
 namespace Ruthenium.DataGrid
 {
-    public class DataGrid : UserControl
+    public class DataGrid : TemplatedControl
     {
+        internal const double GridLineThickness = 4.0;
+        internal static SolidColorBrush LineBrush { get; } = new SolidColorBrush {Color = Colors.Black};
+
         public static readonly DirectProperty<DataGrid, object> ItemsSourceProperty =
             AvaloniaProperty.RegisterDirect<DataGrid, object>(nameof(ItemsSource),
                 o => o.ItemsSource, (o, v) => o.ItemsSource = v);
 
         private object _itemsSource;
-        
-        private CellsPanel CellsPanel { get; set; }
+
+        private List<Line> Border { get; } = new List<Line>();
+
+        private GridPanel Panel { get; }
+
+        internal DataController Controller { get; } = new DataController();
 
         public object ItemsSource
         {
@@ -24,6 +32,7 @@ namespace Ruthenium.DataGrid
 
         public List<GridColumn> Columns { get; } = new List<GridColumn>();
 
+
         static DataGrid()
         {
             ItemsSourceProperty.Changed.AddClassHandler<DataGrid>(x => x.ItemsSourceChanged);
@@ -31,37 +40,49 @@ namespace Ruthenium.DataGrid
 
         public DataGrid()
         {
-            InitializeComponent();
-        }
+            for (int i = 0; i < 4; i++)
+            {
+                var line = new Line() {Stroke = LineBrush, StrokeThickness = GridLineThickness};
+                Border.Add(line);
+                LogicalChildren.Add(line);
+                VisualChildren.Add(line);
+            }
 
-        private void InitializeComponent()
-        {
-            CellsPanel = new CellsPanel();
-            ScrollViewer scrollViewer = new ScrollViewer();
-            scrollViewer.Content = CellsPanel;
-            scrollViewer.TemplateApplied += ScrollViewerOnTemplateApplied;
-            Content = scrollViewer;
-        }
-
-        private void ScrollViewerOnTemplateApplied(object sender, TemplateAppliedEventArgs e)
-        {
-            ScrollViewer scrollViewer = (ScrollViewer) sender;
-            ScrollContentPresenter presenter = (ScrollContentPresenter) scrollViewer.Presenter;
-            presenter.CanHorizontallyScroll = false;
+            Panel = new GridPanel(this);
+            LogicalChildren.Add(Panel);
+            VisualChildren.Add(Panel);
         }
 
         protected void ItemsSourceChanged(AvaloniaPropertyChangedEventArgs e)
         {
-            CellsPanel.RecreateCells(e.NewValue);
+            Controller.SetItemsSource(ItemsSource);
+            Panel.RecreateContent();
         }
 
-        protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+        protected override Size MeasureOverride(Size availableSize)
         {
-            base.OnTemplateApplied(e);
-            for (int i = 0; i < Columns.Count; i++)
-                Columns[i].Index = i;
-            CellsPanel.Columns.AddRange(Columns);
-            CellsPanel.RecreateCells(ItemsSource);
+            MeasureBorder();
+            Panel.Measure(new Size(availableSize.Width - 2.0 * GridLineThickness, availableSize.Height - 2.0 * GridLineThickness));
+            return Panel.DesiredSize;
+
+            void MeasureBorder()
+            {
+                Border[0].StartPoint = new Point(GridLineThickness / 2.0, 0.0);
+                Border[0].EndPoint = new Point(GridLineThickness / 2.0, availableSize.Height);
+                Border[1].StartPoint = new Point(availableSize.Width - GridLineThickness / 2.0, 0.0);
+                Border[1].EndPoint = new Point(availableSize.Width - GridLineThickness / 2.0, availableSize.Height);
+                Border[2].StartPoint = new Point(GridLineThickness, GridLineThickness / 2.0);
+                Border[2].EndPoint = new Point(availableSize.Width - GridLineThickness, GridLineThickness / 2.0);
+                Border[3].StartPoint = new Point(GridLineThickness, availableSize.Height - GridLineThickness / 2.0);
+                Border[3].EndPoint = new Point(availableSize.Width - GridLineThickness, availableSize.Height - GridLineThickness / 2.0);
+            }
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            Panel.Arrange(new Rect(GridLineThickness, GridLineThickness,
+                finalSize.Width - 2.0 * GridLineThickness, finalSize.Height - 2.0 * GridLineThickness));
+            return finalSize;
         }
     }
 }

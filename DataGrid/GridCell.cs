@@ -16,6 +16,7 @@ namespace Ruthenium.DataGrid
 
         public GridCell(GridColumn column)
         {
+            ClipToBounds = true;
             Column = column;
             if (Column.DynamicCreateControlsForCells)
             {
