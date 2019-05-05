@@ -37,9 +37,9 @@
         </Window.Resources>
         <rut:DataGrid Name="grid" ItemsSource="{Binding}">
                 <rut:DataGrid.Columns>
-                        <rut:GridTextColumn FieldName="Id" />
-                        <rut:GridTextColumn FieldName="Text" />
-                        <rut:GridTemplateColumn FieldName="RectData" CellTemplateSelector="{StaticResource shapeTemplateSelector}" />
+                        <rut:GridTextColumn FieldName="Id" Width="50" />
+                        <rut:GridTextColumn FieldName="Text" Width="100" />
+                        <rut:GridTemplateColumn FieldName="RectData" Width="200" CellTemplateSelector="{StaticResource shapeTemplateSelector}" />
                 </rut:DataGrid.Columns>
         </rut:DataGrid>
 </Window>
