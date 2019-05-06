@@ -5,13 +5,13 @@ using Avalonia.Data;
 
 namespace Ruthenium.DataGrid
 {
-    public class GridTemplateColumn : GridColumn
+    public class TemplateColumn : Column
     {
         public static readonly StyledProperty<IDataTemplate> CellTemplateProperty =
-            AvaloniaProperty.Register<GridColumn, IDataTemplate>(nameof(CellTemplate));
+            AvaloniaProperty.Register<TemplateColumn, IDataTemplate>(nameof(CellTemplate));
 
-        public static readonly DirectProperty<GridTemplateColumn, DataTemplateSelector> CellTemplateSelectorProperty =
-            AvaloniaProperty.RegisterDirect<GridTemplateColumn, DataTemplateSelector>(nameof(CellTemplateSelector),
+        public static readonly DirectProperty<TemplateColumn, DataTemplateSelector> CellTemplateSelectorProperty =
+            AvaloniaProperty.RegisterDirect<TemplateColumn, DataTemplateSelector>(nameof(CellTemplateSelector),
                 o => o.CellTemplateSelector, (o, v) => o.CellTemplateSelector = v);
 
         private DataTemplateSelector _cellTemplateSelector;
@@ -46,7 +46,7 @@ namespace Ruthenium.DataGrid
             return (CellTemplate != null) ? CellTemplate.Build(null) : CreateDefaultControl();
         }
 
-        public override IControl DynamicCreateControl(GridCell cell)
+        public override IControl DynamicCreateControl(Cell cell)
         {
             if (CellTemplateSelector == null)
                 return CreateDefaultControl();

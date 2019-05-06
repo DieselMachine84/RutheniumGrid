@@ -4,14 +4,14 @@ using Avalonia.Controls;
 
 namespace Ruthenium.DataGrid
 {
-    public abstract class GridColumn : AvaloniaObject
+    public abstract class Column : AvaloniaObject
     {
-        public static readonly DirectProperty<GridColumn, string> FieldNameProperty =
-            AvaloniaProperty.RegisterDirect<GridColumn, string>(nameof(FieldName),
+        public static readonly DirectProperty<Column, string> FieldNameProperty =
+            AvaloniaProperty.RegisterDirect<Column, string>(nameof(FieldName),
                 o => o.FieldName, (o, v) => o.FieldName = v);
 
-        public static readonly DirectProperty<GridColumn, double> WidthProperty =
-            AvaloniaProperty.RegisterDirect<GridColumn, double>(nameof(Width),
+        public static readonly DirectProperty<Column, double> WidthProperty =
+            AvaloniaProperty.RegisterDirect<Column, double>(nameof(Width),
                 o => o.Width, (o, v) => o.Width = v);
 
         private string _fieldName = String.Empty;
@@ -40,6 +40,6 @@ namespace Ruthenium.DataGrid
 
         public abstract IControl CreateControl();
 
-        public virtual IControl DynamicCreateControl(GridCell cell) => null;
+        public virtual IControl DynamicCreateControl(Cell cell) => null;
     }
 }

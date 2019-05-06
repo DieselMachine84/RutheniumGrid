@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Ruthenium.DataGrid
 {
-    internal class GridCells : List<GridCell>
+    internal class CellsCollection : List<Cell>
     {
         private const int NewRowsCreationCount = 8;
 
-        private readonly List<GridColumn> _columns;
-        private readonly Action<GridCell> _newCellPanelAction;
+        private readonly List<Column> _columns;
+        private readonly Action<Cell> _newCellPanelAction;
         private int _firstRowCellIndex;
 
         private void AddEmptyRows()
@@ -18,7 +18,7 @@ namespace Ruthenium.DataGrid
             {
                 foreach (var column in _columns)
                 {
-                    var cell = new GridCell(column);
+                    var cell = new Cell(column);
                     if (_firstRowCellIndex > 0)
                     {
                         Insert(_firstRowCellIndex, cell);
@@ -49,7 +49,7 @@ namespace Ruthenium.DataGrid
             }
         }
 
-        public GridCells(List<GridColumn> columns, Action<GridCell> newCellPanelAction)
+        public CellsCollection(List<Column> columns, Action<Cell> newCellPanelAction)
         {
             _columns = columns;
             _newCellPanelAction = newCellPanelAction;

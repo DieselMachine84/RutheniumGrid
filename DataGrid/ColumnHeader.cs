@@ -6,11 +6,11 @@ namespace Ruthenium.DataGrid
 {
     public class ColumnHeader : Control
     {
-        internal GridColumn Column { get; }
+        internal Column Column { get; }
         private TextBlock TextBlock { get; }
         private SolidColorBrush BackgroundBrush { get; } = new SolidColorBrush {Color = Colors.Gray};
         
-        public ColumnHeader(GridColumn column)
+        public ColumnHeader(Column column)
         {
             Column = column;
             TextBlock = new TextBlock {Margin = new Thickness(1.0)};

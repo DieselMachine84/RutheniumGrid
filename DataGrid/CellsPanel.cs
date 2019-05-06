@@ -12,7 +12,7 @@ namespace Ruthenium.DataGrid
     {
         private DataGrid GridControl { get; }
 
-        private GridCells Cells { get; set; }
+        private CellsCollection Cells { get; set; }
 
         private ScrollBar ScrollBar { get; } = new ScrollBar
         {
@@ -272,12 +272,12 @@ namespace Ruthenium.DataGrid
             LogicalChildren.Clear();
             VisualChildren.Clear();
             
-            Action<GridCell> newCellPanelAction = cell =>
+            Action<Cell> newCellPanelAction = cell =>
             {
                 LogicalChildren.Add(cell);
                 VisualChildren.Add(cell);
             };
-            Cells = new GridCells(GridControl.Columns, newCellPanelAction);
+            Cells = new CellsCollection(GridControl.Columns, newCellPanelAction);
 
             LogicalChildren.Add(ScrollBar);
             VisualChildren.Add(ScrollBar);

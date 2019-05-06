@@ -4,7 +4,7 @@ using Avalonia.Controls;
 
 namespace Ruthenium.DataGrid
 {
-    public class GridCell : Control
+    public class Cell : Control
     {
         private IControl Control { get; set; }
 
@@ -12,9 +12,9 @@ namespace Ruthenium.DataGrid
 
         internal int VisibleRow { get; set; } = -1;
 
-        public GridColumn Column { get; }
+        public Column Column { get; }
 
-        public GridCell(GridColumn column)
+        public Cell(Column column)
         {
             ClipToBounds = true;
             Column = column;

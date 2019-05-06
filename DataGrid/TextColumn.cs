@@ -5,7 +5,7 @@ using Avalonia.Data;
 
 namespace Ruthenium.DataGrid
 {
-    public class GridTextColumn : GridColumn
+    public class TextColumn : Column
     {
         public override IControl CreateControl()
         {

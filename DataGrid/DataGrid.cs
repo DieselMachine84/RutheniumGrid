@@ -30,7 +30,7 @@ namespace Ruthenium.DataGrid
             set => SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
         }
 
-        public List<GridColumn> Columns { get; } = new List<GridColumn>();
+        public List<Column> Columns { get; } = new List<Column>();
 
 
         static DataGrid()

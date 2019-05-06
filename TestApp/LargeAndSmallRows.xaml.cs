@@ -30,7 +30,7 @@ namespace Ruthenium.TestApp
             if (rectData == null)
                 return null;
 
-            GridCell cell = (GridCell) container;
+            Cell cell = (Cell) container;
             int width = Convert.ToInt32(rectData.Width);
             if (width % 10 == 0)
                 return cell.FindResource("ellipse") as IDataTemplate;
