@@ -1,45 +1,15 @@
-<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns:rut="clr-namespace:Ruthenium.DataGrid;assembly=Ruthenium.DataGrid"
+        xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:rut="clr-namespace:Ruthenium.DataGrid;assembly=Ruthenium.DataGrid"
         x:Class="Ruthenium.TestApp.MainWindow"
         xmlns:local="clr-namespace:Ruthenium.TestApp"
         Title="Ruthenium DataGrid Test">
-        <Window.Resources>
-                <DataTemplate x:Key="rect">
-                        <Grid>
-                                <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Rectangle Grid.Column="0" Grid.Row="0" Fill="Red"
-                                           Width="{Binding Width}" Height="{Binding Height}" />
-                                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Text}"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                </DataTemplate>
-                <DataTemplate x:Key="ellipse">
-                        <Grid>
-                                <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Ellipse Grid.Column="0" Grid.Row="0" Fill="Green"
-                                           Width="{Binding Width}" Height="{Binding Height}" />
-                                <TextBlock Grid.Column="0" Grid.Row="0" Text="{Binding Text}"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                </DataTemplate>
-                <local:ShapeTemplateSelector x:Key="shapeTemplateSelector" />
-        </Window.Resources>
-        <rut:DataGrid Name="grid" ItemsSource="{Binding}">
-                <rut:DataGrid.Columns>
-                        <rut:GridTextColumn FieldName="Id" Width="50" />
-                        <rut:GridTextColumn FieldName="Text" Width="100" />
-                        <rut:GridTemplateColumn FieldName="RectData" Width="200" CellTemplateSelector="{StaticResource shapeTemplateSelector}" />
-                </rut:DataGrid.Columns>
-        </rut:DataGrid>
+        <TabControl TabStripPlacement="Left">
+                <TabItem Header="Simple grid">
+                        <local:SimpleGrid />
+                </TabItem>
+                <TabItem Header="Large and small rows">
+                        <local:LargeAndSmallRows />
+                </TabItem>
+        </TabControl>
 </Window>

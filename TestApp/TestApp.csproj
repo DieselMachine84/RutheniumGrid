@@ -23,5 +23,14 @@
   <ItemGroup>
     <ProjectReference Include="..\DataGrid\DataGrid.csproj" />
   </ItemGroup>
+    
+  <ItemGroup>
+    <Page Include="LargeAndSmallRows.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SimpleGrid.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
 
 </Project>

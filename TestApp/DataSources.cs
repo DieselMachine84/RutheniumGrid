@@ -30,23 +30,6 @@ namespace Ruthenium.TestApp
         }
     }
 
-    public class ShapeTemplateSelector : DataTemplateSelector
-    {
-        public override IDataTemplate SelectTemplate(object item, AvaloniaObject container)
-        {
-            RectData rectData = item as RectData;
-            if (rectData == null)
-                return null;
-
-            GridCell cell = (GridCell) container;
-            int width = Convert.ToInt32(rectData.Width);
-            if (width % 10 == 0)
-                return cell.FindResource("ellipse") as IDataTemplate;
-            else
-                return cell.FindResource("rect") as IDataTemplate;
-        }
-    }
-
 
     public static class DataSources
     {
