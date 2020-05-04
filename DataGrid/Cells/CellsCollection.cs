@@ -9,7 +9,8 @@ namespace Ruthenium.DataGrid
         private const int NewRowsCreationCount = 8;
 
         private readonly List<Column> _columns;
-        private readonly Action<Cell> _newCellPanelAction;
+        private readonly Action<Cell> _addCellAction;
+        private readonly Action<Cell> _removeCellAction;
         private int _firstRowCellIndex;
 
         private void AddEmptyRows()
@@ -28,7 +29,7 @@ namespace Ruthenium.DataGrid
                     {
                         Add(cell);
                     }
-                    _newCellPanelAction(cell);
+                    _addCellAction(cell);
                 }
             }
         }
@@ -37,22 +38,23 @@ namespace Ruthenium.DataGrid
         {
             while (Count > optimalRowsCount * _columns.Count)
             {
+                //TODO remove not previous but less used row
+                int indexToRemoveAt = (_firstRowCellIndex > 0) ? _firstRowCellIndex - 1 : Count - 1;
+                var cell = this[indexToRemoveAt];
+                RemoveAt(indexToRemoveAt);
+                _removeCellAction(cell);
                 if (_firstRowCellIndex > 0)
                 {
                     _firstRowCellIndex--;
-                    RemoveAt(_firstRowCellIndex);
-                }
-                else
-                {
-                    RemoveAt(Count - 1);
                 }
             }
         }
 
-        public CellsCollection(List<Column> columns, Action<Cell> newCellPanelAction)
+        public CellsCollection(List<Column> columns, Action<Cell> addCellAction, Action<Cell> removeCellAction)
         {
             _columns = columns;
-            _newCellPanelAction = newCellPanelAction;
+            _addCellAction = addCellAction;
+            _removeCellAction = removeCellAction;
             AddEmptyRows();
             _firstRowCellIndex = 0;
         }

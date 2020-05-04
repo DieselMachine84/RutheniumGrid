@@ -40,6 +40,7 @@ namespace Ruthenium.DataGrid
 
         public DataGrid()
         {
+            //TODO: move to GridPanel?
             for (int i = 0; i < 4; i++)
             {
                 var line = new Line() {Stroke = LineBrush, StrokeThickness = GridLineThickness};

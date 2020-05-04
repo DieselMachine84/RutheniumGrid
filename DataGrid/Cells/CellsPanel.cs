@@ -30,7 +30,7 @@ namespace Ruthenium.DataGrid
             {
                 _scrollOffset = value;
                 _scrollOffset = Math.Max(_scrollOffset, 0.0);
-                _scrollOffset = Math.Min(_scrollOffset, GridControl.Controller.Count - 0.001);
+                _scrollOffset = Math.Min(_scrollOffset, GridControl.Controller.Count);
             }
         }
 
@@ -126,6 +126,7 @@ namespace Ruthenium.DataGrid
                 cellIndex = Cells.GetRowCellIndex(row);
             }
 
+            //TODO fix bug when row == GridControl.Controller.Count
             Cells.OptimizeFreeCells(row);
             for (int i = row - firstRow; i < RowHeights.Count; i++)
                 RowHeights[i] = Double.NaN;
@@ -238,6 +239,7 @@ namespace Ruthenium.DataGrid
 
             void UpdateScrollBar()
             {
+                //TODO: grid should not scroll entirely
                 ScrollBar.Height = availableSize.Height;
                 ScrollBar.ViewportSize = row - firstRow - 2 + firstVisibleRowVisiblePart + lastVisibleRowVisiblePart;
                 ScrollBar.InvalidateMeasure();
@@ -266,17 +268,24 @@ namespace Ruthenium.DataGrid
         {
             LogicalChildren.Clear();
             VisualChildren.Clear();
-            
-            Action<Cell> newCellPanelAction = cell =>
-            {
-                LogicalChildren.Add(cell);
-                VisualChildren.Add(cell);
-            };
-            Cells = new CellsCollection(GridControl.Columns, newCellPanelAction);
+
+            Cells = new CellsCollection(GridControl.Columns, AddCellAction, RemoveCellAction);
 
             LogicalChildren.Add(ScrollBar);
             VisualChildren.Add(ScrollBar);
             ScrollBar.Maximum = GridControl.Controller.Count;
+
+            void AddCellAction(Cell cell)
+            {
+                LogicalChildren.Add(cell);
+                VisualChildren.Add(cell);
+            }
+
+            void RemoveCellAction(Cell cell)
+            {
+                LogicalChildren.Remove(cell);
+                VisualChildren.Remove(cell);
+            }
         }
     }
 }
