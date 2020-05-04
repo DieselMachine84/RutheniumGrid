@@ -16,10 +16,7 @@ namespace Ruthenium.DataGrid
 
         private DataTemplateSelector _cellTemplateSelector;
 
-        protected internal override bool DynamicCreateControlsForCells
-        {
-            get => CellTemplateSelector != null;
-        }
+        protected internal override bool DynamicCreateControlsForCells => CellTemplateSelector != null;
 
         public IDataTemplate CellTemplate
         {

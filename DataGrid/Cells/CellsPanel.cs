@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
+using Avalonia.Layout;
 
 namespace Ruthenium.DataGrid
 {
@@ -16,7 +17,8 @@ namespace Ruthenium.DataGrid
 
         private ScrollBar ScrollBar { get; } = new ScrollBar
         {
-            Orientation = Orientation.Vertical, Visibility = ScrollBarVisibility.Visible
+            Orientation = Orientation.Vertical,
+            Visibility = ScrollBarVisibility.Visible
         };
 
         private double _scrollOffset;
@@ -44,7 +46,7 @@ namespace Ruthenium.DataGrid
 
         private List<Line> RowLines { get; } = new List<Line>();
 
-        
+
         public CellsPanel(DataGrid gridControl)
         {
             GridControl = gridControl;
@@ -62,7 +64,8 @@ namespace Ruthenium.DataGrid
             if (GridControl.Columns.Count == 0)
                 return Size.Empty;
 
-            ZeroColumnRowSizes();
+            for (int i = 0; i < RowHeights.Count; i++)
+                RowHeights[i] = 0.0;
 
             double offsetFloor = Math.Floor(ScrollOffset);
             int firstRow = Convert.ToInt32(offsetFloor);
@@ -131,14 +134,6 @@ namespace Ruthenium.DataGrid
             UpdateScrollBar();
             return new Size(AccumulatedColumnWidths.Last(), viewportRowsHeight);
 
-
-            void ZeroColumnRowSizes()
-            {
-                for (int i = 0; i < RowHeights.Count; i++)
-                {
-                    RowHeights[i] = 0.0;
-                }
-            }
 
             void CalcAccumulatedColumnRowSizes()
             {

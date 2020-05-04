@@ -10,7 +10,8 @@ namespace Ruthenium.TestApp
         {
             InitializeComponent();
 
-            DataContext = DataSources.GetSimpleDataSource(1000000);
+            //TODO remove it?
+            //DataContext = DataSources.GetSimpleDataSource(1000000);
         }
 
         private void InitializeComponent()

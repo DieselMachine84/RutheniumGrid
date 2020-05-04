@@ -1,7 +1,7 @@
-<Window x:Class="Ruthenium.TestApp.MainWindow"
-        xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:Ruthenium.TestApp"
+        x:Class="Ruthenium.TestApp.MainWindow"
         Title="Ruthenium DataGrid Test">
         <TabControl TabStripPlacement="Left">
                 <TabItem Header="Simple grid">

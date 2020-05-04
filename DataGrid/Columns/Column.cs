@@ -16,7 +16,7 @@ namespace Ruthenium.DataGrid
 
         private string _fieldName = String.Empty;
         private double _width; 
-        
+
         protected internal virtual bool DynamicCreateControlsForCells => false;
 
         public string FieldName
@@ -32,6 +32,7 @@ namespace Ruthenium.DataGrid
         }
 
         public int Index { get; internal set; }
+
 
         public ColumnHeader CreateColumnHeader()
         {

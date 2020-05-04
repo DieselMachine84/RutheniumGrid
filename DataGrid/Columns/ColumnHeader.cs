@@ -13,8 +13,7 @@ namespace Ruthenium.DataGrid
         public ColumnHeader(Column column)
         {
             Column = column;
-            TextBlock = new TextBlock {Margin = new Thickness(1.0)};
-            TextBlock.Text = Column.FieldName;
+            TextBlock = new TextBlock {Margin = new Thickness(1.0), Text = Column.FieldName};
             LogicalChildren.Add(TextBlock);
             VisualChildren.Add(TextBlock);
         }

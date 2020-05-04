@@ -15,10 +15,10 @@ namespace Ruthenium.DataGrid
 
         protected object ItemsSource => _itemsSource;
 
-        protected IList SourceList => _sourceList ?? (_sourceList = ItemsSource as IList);
+        protected IList SourceList => _sourceList ??= ItemsSource as IList;
 
         protected List<PropertyInfo> Properties { get; } = new List<PropertyInfo>(16);
-        
+
         public int Count
         {
             get

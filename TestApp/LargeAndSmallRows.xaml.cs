@@ -32,10 +32,8 @@ namespace Ruthenium.TestApp
 
             Cell cell = (Cell) container;
             int width = Convert.ToInt32(rectData.Width);
-            if (width % 10 == 0)
-                return cell.FindResource("ellipse") as IDataTemplate;
-            else
-                return cell.FindResource("rect") as IDataTemplate;
+            string resourceKey = (width % 10 == 0) ? "ellipse" : "rect";
+            return cell.FindResource(resourceKey) as IDataTemplate;
         }
     }
 }

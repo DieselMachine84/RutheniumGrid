@@ -14,9 +14,13 @@ namespace Ruthenium.DataGrid
 
         public Column Column { get; }
 
+        static Cell()
+        {
+            ClipToBoundsProperty.OverrideDefaultValue<Cell>(true);
+        }
+
         public Cell(Column column)
         {
-            ClipToBounds = true;
             Column = column;
             if (Column.DynamicCreateControlsForCells)
             {

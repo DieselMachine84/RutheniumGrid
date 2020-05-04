@@ -1,8 +1,8 @@
-<UserControl x:Class="Ruthenium.TestApp.LargeAndSmallRows"
-             xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:rut="clr-namespace:Ruthenium.DataGrid;assembly=Ruthenium.DataGrid"
-             xmlns:local="clr-namespace:Ruthenium.TestApp">
+             xmlns:local="clr-namespace:Ruthenium.TestApp"
+             x:Class="Ruthenium.TestApp.LargeAndSmallRows">
         <UserControl.Resources>
                 <DataTemplate x:Key="rect">
                         <Grid>

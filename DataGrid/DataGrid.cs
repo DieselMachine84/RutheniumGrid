@@ -9,7 +9,7 @@ namespace Ruthenium.DataGrid
 {
     public class DataGrid : TemplatedControl
     {
-        internal const double GridLineThickness = 4.0;
+        internal const double GridLineThickness = 1.0;
         internal static SolidColorBrush LineBrush { get; } = new SolidColorBrush {Color = Colors.Black};
 
         public static readonly DirectProperty<DataGrid, object> ItemsSourceProperty =
@@ -35,7 +35,7 @@ namespace Ruthenium.DataGrid
 
         static DataGrid()
         {
-            ItemsSourceProperty.Changed.AddClassHandler<DataGrid>(x => x.ItemsSourceChanged);
+            ItemsSourceProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.ItemsSourceChanged(e));
         }
 
         public DataGrid()
