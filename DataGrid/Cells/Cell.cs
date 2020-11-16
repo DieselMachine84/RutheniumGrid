@@ -4,13 +4,12 @@ using Avalonia.Controls;
 
 namespace Ruthenium.DataGrid
 {
-    public class Cell : Control
+    public class Cell : Panel
     {
+        internal static int MeasureCount { get; set; }
         private IControl Control { get; set; }
 
         internal int Row { get; set; } = -1;
-
-        internal int VisibleRow { get; set; } = -1;
 
         public Column Column { get; }
 
@@ -29,30 +28,25 @@ namespace Ruthenium.DataGrid
             else
             {
                 Control = Column.CreateControl();
-                LogicalChildren.Add(Control);
-                VisualChildren.Add(Control);
+                Children.Add(Control);
             }
         }
 
         private void OnDataContextChanged(object sender, EventArgs e)
         {
-            LogicalChildren.Remove(Control);
-            VisualChildren.Remove(Control);
+            Children.Remove(Control);
             Control = Column.DynamicCreateControl(this);
-            LogicalChildren.Add(Control);
-            VisualChildren.Add(Control);
+            Children.Add(Control);
         }
 
         protected override Size MeasureOverride(Size availableSize)
         {
+            unchecked { MeasureCount++; }
+            //TODO performance: setting Width and Height forces two Control.Measure passes
+            Width = Column.Width;
             Control.Measure(availableSize);
-            return Control.DesiredSize;
-        }
-
-        protected override Size ArrangeOverride(Size finalSize)
-        {
-            Control.Arrange(new Rect(finalSize));
-            return finalSize;
+            Height = Control.DesiredSize.Height;
+            return new Size(Width, Height);
         }
 
         public override string ToString()

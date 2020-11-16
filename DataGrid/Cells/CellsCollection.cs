@@ -4,30 +4,41 @@ using System.Text;
 
 namespace Ruthenium.DataGrid
 {
-    internal class CellsCollection : List<Cell>
+    internal class CellsCollection
     {
+        private enum AddEmptyRowsMode { BeforeInitial, AfterInitial }
         private const int NewRowsCreationCount = 8;
 
+        private List<Cell> _cells = new List<Cell>();
         private readonly List<Column> _columns;
         private readonly Action<Cell> _addCellAction;
         private readonly Action<Cell> _removeCellAction;
-        private int _firstRowCellIndex;
+        private int _initialRowCellIndex;
 
-        private void AddEmptyRows()
+        private void AddEmptyRows(AddEmptyRowsMode mode)
         {
             for (int i = 0; i < NewRowsCreationCount; i++)
             {
                 foreach (var column in _columns)
                 {
                     var cell = new Cell(column);
-                    if (_firstRowCellIndex > 0)
+                    switch (mode)
                     {
-                        Insert(_firstRowCellIndex, cell);
-                        _firstRowCellIndex++;
-                    }
-                    else
-                    {
-                        Add(cell);
+                        case AddEmptyRowsMode.BeforeInitial:
+                            if (_initialRowCellIndex > 0)
+                            {
+                                _cells.Insert(_initialRowCellIndex, cell);
+                                _initialRowCellIndex++;
+                            }
+                            else
+                            {
+                                _cells.Add(cell);
+                            }
+
+                            break;
+                        case AddEmptyRowsMode.AfterInitial:
+                            _cells.Insert(_initialRowCellIndex + _columns.Count, cell);
+                            break;
                     }
                     _addCellAction(cell);
                 }
@@ -36,16 +47,16 @@ namespace Ruthenium.DataGrid
 
         private void RemoveEmptyRows(int optimalRowsCount)
         {
-            while (Count > optimalRowsCount * _columns.Count)
+            while (_cells.Count > optimalRowsCount * _columns.Count)
             {
                 //TODO remove not previous but less used row
-                int indexToRemoveAt = (_firstRowCellIndex > 0) ? _firstRowCellIndex - 1 : Count - 1;
-                var cell = this[indexToRemoveAt];
-                RemoveAt(indexToRemoveAt);
+                int indexToRemoveAt = (_initialRowCellIndex > 0) ? _initialRowCellIndex - 1 : _cells.Count - 1;
+                var cell = _cells[indexToRemoveAt];
+                _cells.RemoveAt(indexToRemoveAt);
                 _removeCellAction(cell);
-                if (_firstRowCellIndex > 0)
+                if (_initialRowCellIndex > 0)
                 {
-                    _firstRowCellIndex--;
+                    _initialRowCellIndex--;
                 }
             }
         }
@@ -55,80 +66,119 @@ namespace Ruthenium.DataGrid
             _columns = columns;
             _addCellAction = addCellAction;
             _removeCellAction = removeCellAction;
-            AddEmptyRows();
-            _firstRowCellIndex = 0;
+            AddEmptyRows(AddEmptyRowsMode.BeforeInitial);
+            _initialRowCellIndex = 0;
         }
 
-        public int GetFirstRowCellIndex(int firstRow)
+        public int GetInitialRow()
         {
-            int oldFirstRow = this[_firstRowCellIndex].Row;
-            if (oldFirstRow == -1)
+            return _cells[_initialRowCellIndex].Row;
+        }
+        
+        public void SetInitialRow(int initialRow)
+        {
+            int oldInitialRow = GetInitialRow();
+            if (oldInitialRow == -1)
             {
-                _firstRowCellIndex = 0;
-                return _firstRowCellIndex;
+                _initialRowCellIndex = 0;
             }
 
-            if (firstRow != oldFirstRow)
+            if (initialRow != oldInitialRow)
             {
-                if (firstRow < oldFirstRow)
+                if (initialRow < oldInitialRow)
                 {
-                    if ((oldFirstRow - firstRow) * _columns.Count < Count)
+                    if ((oldInitialRow - initialRow) * _columns.Count < _cells.Count)
                     {
-                        _firstRowCellIndex -= (oldFirstRow - firstRow) * _columns.Count;
-                        if (_firstRowCellIndex < 0)
-                            _firstRowCellIndex += Count;
+                        _initialRowCellIndex -= (oldInitialRow - initialRow) * _columns.Count;
+                        if (_initialRowCellIndex < 0)
+                            _initialRowCellIndex += _cells.Count;
                     }
                     else
                     {
-                        _firstRowCellIndex = 0;
+                        _initialRowCellIndex = 0;
                     }
                 }
                 else
                 {
-                    if ((firstRow - oldFirstRow) * _columns.Count < Count)
+                    if ((initialRow - oldInitialRow) * _columns.Count < _cells.Count)
                     {
-                        _firstRowCellIndex += (firstRow - oldFirstRow) * _columns.Count;
-                        if (_firstRowCellIndex >= Count)
-                            _firstRowCellIndex -= Count;
+                        _initialRowCellIndex += (initialRow - oldInitialRow) * _columns.Count;
+                        if (_initialRowCellIndex >= _cells.Count)
+                            _initialRowCellIndex -= _cells.Count;
                     }
                     else
                     {
-                        _firstRowCellIndex = 0;
+                        _initialRowCellIndex = 0;
                     }
                 }
             }
-
-            return _firstRowCellIndex;
         }
 
-        public int GetRowCellIndex(int row)
+        public Cell GetCell(int initialRowDiff, int column)
         {
-            int firstRow = this[_firstRowCellIndex].Row;
-            while ((row - firstRow) * _columns.Count >= Count)
+            while ((Math.Abs(initialRowDiff) + 1) * _columns.Count >= _cells.Count)
             {
-                AddEmptyRows();
+                AddEmptyRows((initialRowDiff >= 0) ? AddEmptyRowsMode.BeforeInitial : AddEmptyRowsMode.AfterInitial);
+            }
+            int rowCellIndex = _initialRowCellIndex + initialRowDiff * _columns.Count;
+            if (rowCellIndex < 0)
+                rowCellIndex += _cells.Count;
+            if (rowCellIndex >= _cells.Count)
+                rowCellIndex -= _cells.Count;
+            return _cells[rowCellIndex + column];
+        }
+
+        /*public int GetRowCellIndex(int row)
+        {
+            int firstRow = GetInitialRow();
+            while ((Math.Abs(row - firstRow) + 1) * _columns.Count >= _cells.Count)
+            {
+                AddEmptyRows((row > firstRow) ? AddEmptyRowsMode.BeforeInitial : AddEmptyRowsMode.AfterInitial);
             }
 
-            int rowCellIndex = _firstRowCellIndex + (row - firstRow) * _columns.Count;
-            if (rowCellIndex >= Count)
-                rowCellIndex -= Count;
+            int rowCellIndex = _initialRowCellIndex + (row - firstRow) * _columns.Count;
+            if (rowCellIndex < 0)
+                rowCellIndex += _cells.Count;
+            if (rowCellIndex >= _cells.Count)
+                rowCellIndex -= _cells.Count;
             return rowCellIndex;
-        }
+        }*/
 
+        public void UpdateVisibility(int beyondLastRow)
+        {
+            int firstRow = GetInitialRow();
+            int notVisibleCellIndex = _initialRowCellIndex + (beyondLastRow - firstRow) * _columns.Count;
+            if (notVisibleCellIndex >= _cells.Count)
+                notVisibleCellIndex -= _cells.Count;
+            while (notVisibleCellIndex != _initialRowCellIndex)
+            {
+                _cells[notVisibleCellIndex].IsVisible = false;
+                notVisibleCellIndex++;
+                if (notVisibleCellIndex == _cells.Count)
+                    notVisibleCellIndex = 0;
+            }
+        }
         public void OptimizeFreeCells(int beyondLastRow)
         {
-            int firstRow = this[_firstRowCellIndex].Row;
+            int firstRow = GetInitialRow();
             RemoveEmptyRows(beyondLastRow - firstRow + 4 * NewRowsCreationCount);
+        }
 
-            int freeCellIndex = _firstRowCellIndex + (beyondLastRow - firstRow) * _columns.Count;
-            if (freeCellIndex >= Count)
-                freeCellIndex -= Count;
-            while (freeCellIndex != _firstRowCellIndex)
+        public IEnumerable<Cell> GetVisibleCells()
+        {
+            int index = _initialRowCellIndex;
+            while (true)
             {
-                this[freeCellIndex].IsVisible = false;
-                freeCellIndex++;
-                if (freeCellIndex == Count)
-                    freeCellIndex = 0;
+                var cell = _cells[index];
+                if (cell.IsVisible)
+                    yield return cell;
+                else
+                    yield break;
+                index++;
+                if (index == _cells.Count)
+                    index = 0;
+                if (index == _initialRowCellIndex)
+                    yield break;
             }
         }
 
@@ -138,11 +188,11 @@ namespace Ruthenium.DataGrid
                 return String.Empty;
             
             StringBuilder result = new StringBuilder();
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < _cells.Count; i++)
             {
                 if (i % _columns.Count == 0)
                     result.AppendLine();
-                result.Append(this[i]);
+                result.Append(_cells[i]);
                 result.Append("    ");
             }
             return result.ToString().Trim();

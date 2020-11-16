@@ -96,6 +96,7 @@ namespace Ruthenium.DataGrid
             VisualChildren.Clear();
 
             ColumnHeaders.Clear();
+            ColumnHeaderLines.Clear();
             for (int i = 0; i < GridControl.Columns.Count; i++)
             {
                 GridControl.Columns[i].Index = i;
@@ -116,6 +117,26 @@ namespace Ruthenium.DataGrid
             CellsPanel.RecreateCells();
             LogicalChildren.Add(CellsPanel);
             VisualChildren.Add(CellsPanel);
+        }
+
+        public void UpdateSelection()
+        {
+            CellsPanel.UpdateSelection();
+        }
+
+        public void FocusRow(int row)
+        {
+            CellsPanel.FocusRow(row);
+        }
+
+        public void ScrollLineUp()
+        {
+            CellsPanel.ScrollLineUp();
+        }
+
+        public void ScrollLineDown()
+        {
+            CellsPanel.ScrollLineDown();
         }
     }
 }

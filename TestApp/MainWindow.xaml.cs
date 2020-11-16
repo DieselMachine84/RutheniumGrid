@@ -9,9 +9,7 @@ namespace Ruthenium.TestApp
         public MainWindow()
         {
             InitializeComponent();
-
-            //TODO remove it?
-            //DataContext = DataSources.GetSimpleDataSource(1000000);
+            this.AttachDevTools();
         }
 
         private void InitializeComponent()

@@ -12,7 +12,6 @@ namespace Ruthenium.DataGrid
         private IList _sourceList;
         private int _count;
 
-
         protected object ItemsSource => _itemsSource;
 
         protected IList SourceList => _sourceList ??= ItemsSource as IList;
@@ -24,9 +23,7 @@ namespace Ruthenium.DataGrid
             get
             {
                 if (_count == 0)
-                {
                     _count = SourceList?.Count ?? 0;
-                }
 
                 return _count;
             }
