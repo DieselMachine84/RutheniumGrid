@@ -364,7 +364,7 @@ namespace Ruthenium.DataGrid
 
         private void UpdateCellSelection(Cell cell)
         {
-            cell.Background = GridControl.IsSelected(cell.Row) ? DataGrid.SelectedCellBrush : null;
+            cell.Background = GridControl.IsSelected(cell.Row) ? DataGrid.SelectedCellBrush : GridControl.DataAreaBackground;
         }
         public void UpdateSelection()
         {

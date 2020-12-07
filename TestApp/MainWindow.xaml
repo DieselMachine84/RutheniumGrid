@@ -10,5 +10,8 @@
                 <TabItem Header="Large and small rows">
                         <local:LargeAndSmallRows />
                 </TabItem>
+                <TabItem Header="Custom draw">
+                        <local:CustomDraw />
+                </TabItem>
         </TabControl>
 </Window>
