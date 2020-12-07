@@ -32,6 +32,7 @@ namespace Ruthenium.DataGrid
 
         public override void Render(DrawingContext context)
         {
+            //TODO Apply grid background 
             context.FillRectangle(BackgroundBrush, new Rect(Bounds.Size));
             base.Render(context);
         }

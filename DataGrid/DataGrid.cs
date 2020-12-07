@@ -16,11 +16,8 @@ namespace Ruthenium.DataGrid
         internal static SolidColorBrush LineBrush { get; } = new SolidColorBrush {Color = Colors.Black};
         internal static SolidColorBrush SelectedCellBrush { get; } = new SolidColorBrush {Color = Color.FromRgb(0x11, 0x9E, 0xDA)};
 
-        private IBrush dataAreaBackground;
-
-        public static readonly DirectProperty<DataGrid, IBrush> DataAreaBackgroundProperty =
-            AvaloniaProperty.RegisterDirect<DataGrid, IBrush>(nameof(DataAreaBackground),
-                o => o.DataAreaBackground, (o, v) => o.DataAreaBackground = v);
+        public static readonly StyledProperty<IBrush> DataAreaBackgroundProperty =
+            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(DataAreaBackground));
 
         public static readonly DirectProperty<DataGrid, object> ItemsSourceProperty =
             AvaloniaProperty.RegisterDirect<DataGrid, object>(nameof(ItemsSource),
@@ -33,11 +30,11 @@ namespace Ruthenium.DataGrid
         private GridPanel Panel { get; }
 
         internal DataController Controller { get; } = new DataController();
-        
+
         public IBrush DataAreaBackground
         {
-            get => dataAreaBackground;
-            set => SetAndRaise(DataAreaBackgroundProperty, ref dataAreaBackground, value);
+            get => GetValue(DataAreaBackgroundProperty);
+            set => SetValue(DataAreaBackgroundProperty, value);
         }
 
         public object ItemsSource
