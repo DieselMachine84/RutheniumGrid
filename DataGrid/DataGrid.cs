@@ -4,7 +4,6 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 
@@ -12,20 +11,36 @@ namespace Ruthenium.DataGrid
 {
     public class DataGrid : TemplatedControl
     {
-        internal const double GridLineThickness = 1.0;
-        internal static SolidColorBrush LineBrush { get; } = new SolidColorBrush {Color = Colors.Black};
         internal static SolidColorBrush SelectedCellBrush { get; } = new SolidColorBrush {Color = Color.FromRgb(0x11, 0x9E, 0xDA)};
 
         public static readonly StyledProperty<IBrush> DataAreaBackgroundProperty =
             AvaloniaProperty.Register<DataGrid, IBrush>(nameof(DataAreaBackground));
+
+        public static readonly StyledProperty<bool> ShowHorizontalLinesProperty =
+            AvaloniaProperty.Register<DataGrid, bool>(nameof(ShowHorizontalLines), defaultValue: true);
+
+        public static readonly StyledProperty<IBrush> HorizontalLinesBrushProperty =
+            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(HorizontalLinesBrush),
+                defaultValue: new SolidColorBrush {Color = Colors.Black});
+
+        public static readonly StyledProperty<double> HorizontalLinesThicknessProperty =
+            AvaloniaProperty.Register<DataGrid, double>(nameof(HorizontalLinesThickness), defaultValue: 1.0);
+
+        public static readonly StyledProperty<bool> ShowVerticalLinesProperty =
+            AvaloniaProperty.Register<DataGrid, bool>(nameof(ShowVerticalLines), defaultValue: true);
+
+        public static readonly StyledProperty<IBrush> VerticalLinesBrushProperty =
+            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(VerticalLinesBrush),
+                defaultValue: new SolidColorBrush {Color = Colors.Black});
+
+        public static readonly StyledProperty<double> VerticalLinesThicknessProperty =
+            AvaloniaProperty.Register<DataGrid, double>(nameof(VerticalLinesThickness), defaultValue: 1.0);
 
         public static readonly DirectProperty<DataGrid, object> ItemsSourceProperty =
             AvaloniaProperty.RegisterDirect<DataGrid, object>(nameof(ItemsSource),
                 o => o.ItemsSource, (o, v) => o.ItemsSource = v);
 
         private object _itemsSource;
-
-        private List<Line> Border { get; } = new List<Line>();
 
         private GridPanel Panel { get; }
 
@@ -35,6 +50,42 @@ namespace Ruthenium.DataGrid
         {
             get => GetValue(DataAreaBackgroundProperty);
             set => SetValue(DataAreaBackgroundProperty, value);
+        }
+
+        public bool ShowHorizontalLines
+        {
+            get => GetValue(ShowHorizontalLinesProperty);
+            set => SetValue(ShowHorizontalLinesProperty, value);
+        }
+
+        public IBrush HorizontalLinesBrush
+        {
+            get => GetValue(HorizontalLinesBrushProperty);
+            set => SetValue(HorizontalLinesBrushProperty, value);
+        }
+
+        public double HorizontalLinesThickness
+        {
+            get => GetValue(HorizontalLinesThicknessProperty);
+            set => SetValue(HorizontalLinesThicknessProperty, value);
+        }
+
+        public bool ShowVerticalLines
+        {
+            get => GetValue(ShowVerticalLinesProperty);
+            set => SetValue(ShowVerticalLinesProperty, value);
+        }
+
+        public IBrush VerticalLinesBrush
+        {
+            get => GetValue(VerticalLinesBrushProperty);
+            set => SetValue(VerticalLinesBrushProperty, value);
+        }
+
+        public double VerticalLinesThickness
+        {
+            get => GetValue(VerticalLinesThicknessProperty);
+            set => SetValue(VerticalLinesThicknessProperty, value);
         }
 
         public object ItemsSource
@@ -67,15 +118,6 @@ namespace Ruthenium.DataGrid
 
         public DataGrid()
         {
-            //TODO: move to GridPanel?
-            for (int i = 0; i < 4; i++)
-            {
-                var line = new Line() {Stroke = LineBrush, StrokeThickness = GridLineThickness};
-                Border.Add(line);
-                LogicalChildren.Add(line);
-                VisualChildren.Add(line);
-            }
-
             Panel = new GridPanel(this);
             LogicalChildren.Add(Panel);
             VisualChildren.Add(Panel);
@@ -89,27 +131,13 @@ namespace Ruthenium.DataGrid
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            MeasureBorder();
-            Panel.Measure(new Size(availableSize.Width - 2.0 * GridLineThickness, availableSize.Height - 2.0 * GridLineThickness));
+            Panel.Measure(availableSize);
             return Panel.DesiredSize;
-
-            void MeasureBorder()
-            {
-                Border[0].StartPoint = new Point(GridLineThickness / 2.0, 0.0);
-                Border[0].EndPoint = new Point(GridLineThickness / 2.0, availableSize.Height);
-                Border[1].StartPoint = new Point(availableSize.Width - GridLineThickness / 2.0, 0.0);
-                Border[1].EndPoint = new Point(availableSize.Width - GridLineThickness / 2.0, availableSize.Height);
-                Border[2].StartPoint = new Point(GridLineThickness, GridLineThickness / 2.0);
-                Border[2].EndPoint = new Point(availableSize.Width - GridLineThickness, GridLineThickness / 2.0);
-                Border[3].StartPoint = new Point(GridLineThickness, availableSize.Height - GridLineThickness / 2.0);
-                Border[3].EndPoint = new Point(availableSize.Width - GridLineThickness, availableSize.Height - GridLineThickness / 2.0);
-            }
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            Panel.Arrange(new Rect(GridLineThickness, GridLineThickness,
-                finalSize.Width - 2.0 * GridLineThickness, finalSize.Height - 2.0 * GridLineThickness));
+            Panel.Arrange(new Rect(0.0, 0.0, finalSize.Width, finalSize.Height));
             return finalSize;
         }
 

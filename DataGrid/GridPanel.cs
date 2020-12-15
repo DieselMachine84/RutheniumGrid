@@ -3,27 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 
 namespace Ruthenium.DataGrid
 {
-    public class GridPanel : TemplatedControl
+    public class GridPanel : Control
     {
         private DataGrid GridControl { get; }
-
-        private List<ColumnHeader> ColumnHeaders { get; } = new List<ColumnHeader>();
-
-        private List<Line> ColumnHeaderLines { get; } = new List<Line>();
-
-        private Line HorizontalHeaderLine { get; set; }
-
-        private List<double> ColumnHeaderWidths { get; } = new List<double>();
-
-        private double ColumnHeadersHeight { get; set; }
-
         private CellsPanel CellsPanel { get; }
-
+        private List<ColumnHeader> ColumnHeaders { get; } = new List<ColumnHeader>();
+        private List<Line> ColumnHeaderLines { get; } = new List<Line>();
+        private Line HorizontalHeaderLine { get; set; }
+        private double ColumnHeadersHeight { get; set; }
 
         public GridPanel(DataGrid gridControl)
         {
@@ -40,52 +31,38 @@ namespace Ruthenium.DataGrid
                 ColumnHeadersHeight = Math.Max(ColumnHeadersHeight, columnHeader.DesiredSize.Height);
             }
 
-            CalcColumnHeaderWidths();
-            MeasureColumnHeaderLines();
-            CellsPanel.Measure(new Size(availableSize.Width, availableSize.Height - ColumnHeadersHeight - DataGrid.GridLineThickness));
-            return new Size(ColumnHeaderWidths[ColumnHeaderWidths.Count - 1],
-                ColumnHeadersHeight + DataGrid.GridLineThickness + CellsPanel.DesiredSize.Height);
-
-            void CalcColumnHeaderWidths()
+            double columnHeadersWidth = 0.0;
+            for (int i = 0; i < ColumnHeaders.Count; i++)
             {
-                if (ColumnHeaderWidths.Count != ColumnHeaders.Count + 1)
-                {
-                    ColumnHeaderWidths.Clear();
-                    ColumnHeaderWidths.AddRange(Enumerable.Repeat(0.0, ColumnHeaders.Count + 1));
-                }
-                for (int i = 0; i < ColumnHeaderWidths.Count; i++)
-                {
-                    if (i != 0)
-                        ColumnHeaderWidths[i] = ColumnHeaderWidths[i - 1] + ColumnHeaders[i - 1].Column.Width + DataGrid.GridLineThickness;
-                    else
-                        ColumnHeaderWidths[i] = 0.0;
-                }
+                var columnHeader = ColumnHeaders[i];
+                columnHeadersWidth += columnHeader.Column.Width;
+                double lineX = columnHeadersWidth + GridControl.VerticalLinesThickness / 2.0;
+                ColumnHeaderLines[i].StartPoint = new Point(lineX, 0.0);
+                ColumnHeaderLines[i].EndPoint = new Point(lineX, ColumnHeadersHeight);
+                columnHeadersWidth += GridControl.VerticalLinesThickness;
             }
 
-            void MeasureColumnHeaderLines()
-            {
-                for (int i = 0; i < ColumnHeaderLines.Count; i++)
-                {
-                    double x = ColumnHeaderWidths[i + 1] - DataGrid.GridLineThickness / 2.0;
-                    ColumnHeaderLines[i].StartPoint = new Point(x, 0.0);
-                    ColumnHeaderLines[i].EndPoint = new Point(x, ColumnHeadersHeight);
-                }
-                HorizontalHeaderLine.StartPoint = new Point(0.0, ColumnHeadersHeight + DataGrid.GridLineThickness / 2.0);
-                HorizontalHeaderLine.EndPoint = new Point(availableSize.Width, ColumnHeadersHeight + DataGrid.GridLineThickness / 2.0);
-            }
+            var columnHeaderWithHalfLineHeight = ColumnHeadersHeight + GridControl.HorizontalLinesThickness / 2.0;
+            var columnHeaderWithLineHeight = ColumnHeadersHeight + GridControl.HorizontalLinesThickness;
+            HorizontalHeaderLine.StartPoint = new Point(0.0, columnHeaderWithHalfLineHeight);
+            HorizontalHeaderLine.EndPoint = new Point(columnHeadersWidth, columnHeaderWithHalfLineHeight);
+            CellsPanel.Measure(new Size(availableSize.Width, availableSize.Height - columnHeaderWithLineHeight));
+            return new Size(columnHeadersWidth, columnHeaderWithLineHeight + CellsPanel.DesiredSize.Height);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            for (int i = 0; i < ColumnHeaderWidths.Count - 1; i++)
+            double columnHeadersWidth = 0.0;
+            for (int i = 0; i < ColumnHeaders.Count; i++)
             {
-                double width = ColumnHeaderWidths[i + 1] - ColumnHeaderWidths[i] - DataGrid.GridLineThickness;
-                width = Math.Min(width, finalSize.Width - ColumnHeaderWidths[i]);
-                width = Math.Max(width, 0.0);
-                ColumnHeaders[i].Arrange(new Rect(ColumnHeaderWidths[i], 0.0, width, ColumnHeadersHeight));
+                var columnHeader = ColumnHeaders[i];
+                ColumnHeaders[i].Arrange(new Rect(columnHeadersWidth, 0.0, columnHeader.Column.Width, ColumnHeadersHeight));
+                columnHeadersWidth += columnHeader.Column.Width + GridControl.VerticalLinesThickness;
             }
-            CellsPanel.Arrange(new Rect(0.0, ColumnHeadersHeight + DataGrid.GridLineThickness,
-                finalSize.Width, finalSize.Height - ColumnHeadersHeight - DataGrid.GridLineThickness));
+
+            var columnHeaderWithLineHeight = ColumnHeadersHeight + GridControl.HorizontalLinesThickness;
+            CellsPanel.Arrange(new Rect(0.0, columnHeaderWithLineHeight,
+                finalSize.Width, finalSize.Height - columnHeaderWithLineHeight));
 
             return finalSize;
         }
@@ -104,13 +81,13 @@ namespace Ruthenium.DataGrid
                 ColumnHeaders.Add(columnHeader);
                 LogicalChildren.Add(columnHeader);
                 VisualChildren.Add(columnHeader);
-                var line = new Line() {Stroke = DataGrid.LineBrush, StrokeThickness = DataGrid.GridLineThickness};
+                var line = new Line() {Stroke = GridControl.VerticalLinesBrush, StrokeThickness = GridControl.VerticalLinesThickness};
                 ColumnHeaderLines.Add(line);
                 LogicalChildren.Add(line);
                 VisualChildren.Add(line);
             }
 
-            HorizontalHeaderLine = new Line() {Stroke = DataGrid.LineBrush, StrokeThickness = DataGrid.GridLineThickness};
+            HorizontalHeaderLine = new Line() {Stroke = GridControl.HorizontalLinesBrush, StrokeThickness = GridControl.HorizontalLinesThickness};
             LogicalChildren.Add(HorizontalHeaderLine);
             VisualChildren.Add(HorizontalHeaderLine);
 

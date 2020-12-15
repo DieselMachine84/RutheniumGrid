@@ -39,7 +39,6 @@ namespace Ruthenium.DataGrid
 
         private List<Line> RowLines { get; } = new List<Line>();
 
-
         public CellsPanel(DataGrid gridControl)
         {
             GridControl = gridControl;
@@ -87,7 +86,7 @@ namespace Ruthenium.DataGrid
                 _bottomRowToFocus = -1;
             }
             Cells.SetInitialRow(firstRow);
-            double viewportRowsHeight = measureFromTop ? 0.0 : DataGrid.GridLineThickness;
+            double viewportRowsHeight = measureFromTop ? 0.0 : GridControl.HorizontalLinesThickness;
             double firstVisibleRowVisiblePart = 1.0;
             double lastVisibleRowVisiblePart = 1.0;
             FirstWholeVisibleRow = LastWholeVisibleRow = -1;
@@ -164,7 +163,7 @@ namespace Ruthenium.DataGrid
                     }
                 }
 
-                viewportRowsHeight += DataGrid.GridLineThickness;
+                viewportRowsHeight += GridControl.HorizontalLinesThickness;
             }
 
             if (row < 0)
@@ -219,7 +218,7 @@ namespace Ruthenium.DataGrid
                 for (int i = 0; i < AccumulatedColumnWidths.Count; i++)
                 {
                     if (i != 0)
-                        AccumulatedColumnWidths[i] = AccumulatedColumnWidths[i - 1] + columns[i - 1].Width + DataGrid.GridLineThickness;
+                        AccumulatedColumnWidths[i] = AccumulatedColumnWidths[i - 1] + columns[i - 1].Width + GridControl.VerticalLinesThickness;
                     else
                         AccumulatedColumnWidths[i] = 0.0;
                 }
@@ -235,7 +234,7 @@ namespace Ruthenium.DataGrid
                     if (i != 0)
                     {
                         if (!Double.IsNaN(RowHeights[i - 1]))
-                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + DataGrid.GridLineThickness;
+                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + GridControl.HorizontalLinesThickness;
                         else
                             AccumulatedRowHeights[i] = Double.NaN;
                     }
@@ -243,7 +242,7 @@ namespace Ruthenium.DataGrid
                     {
                         AccumulatedRowHeights[i] = AccumulatedRowHeightsStart;
                         if (AccumulatedRowHeightsStart < -Single.Epsilon)
-                            AccumulatedRowHeights[i] += DataGrid.GridLineThickness;
+                            AccumulatedRowHeights[i] += GridControl.HorizontalLinesThickness;
                     }
                 }
             }
@@ -254,8 +253,8 @@ namespace Ruthenium.DataGrid
                 for (int i = ColumnLines.Count; i < AccumulatedColumnWidths.Count - 1; i++)
                 {
                     Line line = new Line();
-                    line.Stroke = DataGrid.LineBrush;
-                    line.StrokeThickness = DataGrid.GridLineThickness;
+                    line.Stroke = GridControl.VerticalLinesBrush;
+                    line.StrokeThickness = GridControl.VerticalLinesThickness;
                     ColumnLines.Add(line);
                     LogicalChildren.Add(line);
                     VisualChildren.Add(line);
@@ -266,8 +265,8 @@ namespace Ruthenium.DataGrid
                 for (int i = RowLines.Count; i < AccumulatedRowHeights.Count - 1; i++)
                 {
                     Line line = new Line();
-                    line.Stroke = DataGrid.LineBrush;
-                    line.StrokeThickness = DataGrid.GridLineThickness;
+                    line.Stroke = GridControl.HorizontalLinesBrush;
+                    line.StrokeThickness = GridControl.HorizontalLinesThickness;
                     RowLines.Add(line);
                     LogicalChildren.Add(line);
                     VisualChildren.Add(line);
@@ -285,8 +284,8 @@ namespace Ruthenium.DataGrid
 
                 for (int i = 0; i < ColumnLines.Count; i++)
                 {
-                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i + 1] - DataGrid.GridLineThickness / 2.0, 0.0);
-                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i + 1] - DataGrid.GridLineThickness / 2.0,
+                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i + 1] - GridControl.VerticalLinesThickness / 2.0, 0.0);
+                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i + 1] - GridControl.VerticalLinesThickness / 2.0,
                         AccumulatedRowHeights[lastAccumulatedRowHeightsIndex]);
                 }
 
@@ -296,9 +295,9 @@ namespace Ruthenium.DataGrid
                     RowLines[i].IsVisible = isVisibleLine;
                     if (isVisibleLine)
                     {
-                        RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i + 1] - DataGrid.GridLineThickness / 2.0);
+                        RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i + 1] - GridControl.HorizontalLinesThickness / 2.0);
                         RowLines[i].EndPoint = new Point(AccumulatedColumnWidths[lastAccumulatedColumnWidthsIndex],
-                            AccumulatedRowHeights[i + 1] - DataGrid.GridLineThickness / 2.0);
+                            AccumulatedRowHeights[i + 1] - GridControl.HorizontalLinesThickness / 2.0);
                     }
                 }
 
@@ -325,7 +324,7 @@ namespace Ruthenium.DataGrid
             foreach (var cell in Cells.GetVisibleCells())
             {
                 double width = AccumulatedColumnWidths[cell.Column.Index + 1] -
-                               AccumulatedColumnWidths[cell.Column.Index] - DataGrid.GridLineThickness;
+                               AccumulatedColumnWidths[cell.Column.Index] - GridControl.VerticalLinesThickness;
                 cell.Arrange(new Rect(AccumulatedColumnWidths[cell.Column.Index],
                     AccumulatedRowHeights[cell.Row - firstRow],
                     width, cell.DesiredSize.Height));
