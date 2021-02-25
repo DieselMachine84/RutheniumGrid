@@ -10,7 +10,7 @@ using Avalonia.Layout;
 
 namespace Ruthenium.DataGrid
 {
-    public class CellsPanel : TemplatedControl
+    public class CellsPanel : Control
     {
         private DataGrid GridControl { get; }
 
@@ -22,7 +22,7 @@ namespace Ruthenium.DataGrid
             Visibility = ScrollBarVisibility.Visible
         };
 
-        private int _bottomRowToFocus = -1;
+        private int bottomRowToFocus = -1;
 
         private int FirstWholeVisibleRow { get; set; }
         private int LastWholeVisibleRow { get; set; }
@@ -39,6 +39,11 @@ namespace Ruthenium.DataGrid
 
         private List<Line> RowLines { get; } = new List<Line>();
 
+        static CellsPanel()
+        {
+            ClipToBoundsProperty.OverrideDefaultValue<CellsPanel>(true);
+        }
+
         public CellsPanel(DataGrid gridControl)
         {
             GridControl = gridControl;
@@ -50,14 +55,14 @@ namespace Ruthenium.DataGrid
             InvalidateMeasure();
         }
 
-        private void CellOnPointerReleased(object sender, PointerReleasedEventArgs e)
+        /*private void CellOnPointerReleased(object sender, PointerReleasedEventArgs e)
         {
             if (e.InitialPressMouseButton == MouseButton.Left)
             {
                 Cell cell = (Cell)sender;
                 GridControl.UpdateSelection(cell);
             }
-        }
+        }*/
 
         protected override Size MeasureOverride(Size availableSize)
         {
@@ -65,7 +70,7 @@ namespace Ruthenium.DataGrid
                 return Size.Empty;
 
             start:
-            bool measureFromTop = (_bottomRowToFocus < 0);
+            bool measureFromTop = (bottomRowToFocus < 0);
             if (measureFromTop)
             {
                 for (int i = 0; i < RowHeights.Count; i++)
@@ -81,9 +86,9 @@ namespace Ruthenium.DataGrid
             int row = firstRow - 1;
             if (!measureFromTop)
             {
-                firstRow = _bottomRowToFocus;
+                firstRow = bottomRowToFocus;
                 row = firstRow + 1;
-                _bottomRowToFocus = -1;
+                bottomRowToFocus = -1;
             }
             Cells.SetInitialRow(firstRow);
             double viewportRowsHeight = measureFromTop ? 0.0 : GridControl.HorizontalLinesThickness;
@@ -127,7 +132,7 @@ namespace Ruthenium.DataGrid
 
                     if (cellNeedsMeasure)
                     {
-                        UpdateCellSelection(cell);
+                        //UpdateCellSelection(cell);
                         cell.InvalidateMeasure();
                         cell.Measure(Size.Infinity);
                     }
@@ -201,7 +206,6 @@ namespace Ruthenium.DataGrid
             for (int i = row - firstRow + 1; i < RowHeights.Count; i++)
                 RowHeights[i] = Double.NaN;
             CalcAccumulatedColumnRowSizes();
-            UpdateGridLines();
             UpdateScrollBar();
             return new Size(AccumulatedColumnWidths[AccumulatedColumnWidths.Count - 1], viewportRowsHeight);
 
@@ -209,10 +213,13 @@ namespace Ruthenium.DataGrid
             void CalcAccumulatedColumnRowSizes()
             {
                 var columns = GridControl.Columns;
-                if (AccumulatedColumnWidths.Count != columns.Count + 1)
+                if (AccumulatedColumnWidths.Count > columns.Count + 1)
                 {
-                    AccumulatedColumnWidths.Clear();
-                    AccumulatedColumnWidths.AddRange(Enumerable.Repeat(0.0, columns.Count + 1));
+                    AccumulatedColumnWidths.RemoveRange(columns.Count + 1, AccumulatedColumnWidths.Count - (columns.Count + 1));
+                }
+                if (columns.Count + 1 > AccumulatedColumnWidths.Count)
+                {
+                    AccumulatedColumnWidths.AddRange(Enumerable.Repeat(0.0, columns.Count + 1 - AccumulatedColumnWidths.Count));
                 }
 
                 for (int i = 0; i < AccumulatedColumnWidths.Count; i++)
@@ -223,10 +230,14 @@ namespace Ruthenium.DataGrid
                         AccumulatedColumnWidths[i] = 0.0;
                 }
 
-                if (AccumulatedRowHeights.Count != RowHeights.Count + 1)
+
+                if (AccumulatedRowHeights.Count > RowHeights.Count + 1)
                 {
-                    AccumulatedRowHeights.Clear();
-                    AccumulatedRowHeights.AddRange(Enumerable.Repeat(0.0, RowHeights.Count + 1));
+                    AccumulatedRowHeights.RemoveRange(RowHeights.Count + 1, AccumulatedRowHeights.Count - (RowHeights.Count + 1));
+                }
+                if (RowHeights.Count + 1 > AccumulatedRowHeights.Count)
+                {
+                    AccumulatedRowHeights.AddRange(Enumerable.Repeat(0.0, RowHeights.Count + 1 - AccumulatedRowHeights.Count));
                 }
 
                 for (int i = 0; i < AccumulatedRowHeights.Count; i++)
@@ -234,77 +245,16 @@ namespace Ruthenium.DataGrid
                     if (i != 0)
                     {
                         if (!Double.IsNaN(RowHeights[i - 1]))
-                            AccumulatedRowHeights[i] = AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + GridControl.HorizontalLinesThickness;
+                            AccumulatedRowHeights[i] = Math.Round(AccumulatedRowHeights[i - 1] + RowHeights[i - 1] + GridControl.HorizontalLinesThickness);
                         else
                             AccumulatedRowHeights[i] = Double.NaN;
                     }
                     else
                     {
-                        AccumulatedRowHeights[i] = AccumulatedRowHeightsStart;
+                        AccumulatedRowHeights[i] = Math.Round(AccumulatedRowHeightsStart);
                         if (AccumulatedRowHeightsStart < -Single.Epsilon)
                             AccumulatedRowHeights[i] += GridControl.HorizontalLinesThickness;
                     }
-                }
-            }
-
-            //TODO lines are added many times?
-            void UpdateGridLines()
-            {
-                for (int i = ColumnLines.Count; i < AccumulatedColumnWidths.Count - 1; i++)
-                {
-                    Line line = new Line();
-                    line.Stroke = GridControl.VerticalLinesBrush;
-                    line.StrokeThickness = GridControl.VerticalLinesThickness;
-                    ColumnLines.Add(line);
-                    LogicalChildren.Add(line);
-                    VisualChildren.Add(line);
-                }
-
-                int lastAccumulatedColumnWidthsIndex = AccumulatedColumnWidths.Count - 1;
-
-                for (int i = RowLines.Count; i < AccumulatedRowHeights.Count - 1; i++)
-                {
-                    Line line = new Line();
-                    line.Stroke = GridControl.HorizontalLinesBrush;
-                    line.StrokeThickness = GridControl.HorizontalLinesThickness;
-                    RowLines.Add(line);
-                    LogicalChildren.Add(line);
-                    VisualChildren.Add(line);
-                }
-
-                int lastAccumulatedRowHeightsIndex = AccumulatedRowHeights.Count - 1;
-                for (int i = 0; i < AccumulatedRowHeights.Count; i++)
-                {
-                    if (Double.IsNaN(AccumulatedRowHeights[i]))
-                    {
-                        lastAccumulatedRowHeightsIndex = i - 1;
-                        break;
-                    }
-                }
-
-                for (int i = 0; i < ColumnLines.Count; i++)
-                {
-                    ColumnLines[i].StartPoint = new Point(AccumulatedColumnWidths[i + 1] - GridControl.VerticalLinesThickness / 2.0, 0.0);
-                    ColumnLines[i].EndPoint = new Point(AccumulatedColumnWidths[i + 1] - GridControl.VerticalLinesThickness / 2.0,
-                        AccumulatedRowHeights[lastAccumulatedRowHeightsIndex]);
-                }
-
-                for (int i = 0; i < RowLines.Count; i++)
-                {
-                    bool isVisibleLine = (i + 1 < AccumulatedRowHeights.Count) && !Double.IsNaN(AccumulatedRowHeights[i + 1]);
-                    RowLines[i].IsVisible = isVisibleLine;
-                    if (isVisibleLine)
-                    {
-                        RowLines[i].StartPoint = new Point(0.0, AccumulatedRowHeights[i + 1] - GridControl.HorizontalLinesThickness / 2.0);
-                        RowLines[i].EndPoint = new Point(AccumulatedColumnWidths[lastAccumulatedColumnWidthsIndex],
-                            AccumulatedRowHeights[i + 1] - GridControl.HorizontalLinesThickness / 2.0);
-                    }
-                }
-
-                foreach (var line in ColumnLines.Concat(RowLines))
-                {
-                    line.InvalidateMeasure();
-                    line.Measure(Size.Infinity);
                 }
             }
 
@@ -330,8 +280,69 @@ namespace Ruthenium.DataGrid
                     width, cell.DesiredSize.Height));
             }
 
+            UpdateGridLines();
             ScrollBar.Arrange(new Rect(finalSize.Width - ScrollBar.Width, 0.0, ScrollBar.Width, finalSize.Height));
             return finalSize;
+
+            void UpdateGridLines()
+            {
+                int lastAccumulatedColumnWidthsIndex = AccumulatedColumnWidths.Count - 1;
+                while (ColumnLines.Count > lastAccumulatedColumnWidthsIndex)
+                {
+                    var columnLine = ColumnLines[ColumnLines.Count - 1];
+                    ColumnLines.Remove(columnLine);
+                    LogicalChildren.Remove(columnLine);
+                    VisualChildren.Remove(columnLine);
+                }
+                while (lastAccumulatedColumnWidthsIndex > ColumnLines.Count)
+                {
+                    Line columnLine = new Line();
+                    columnLine.Stroke = GridControl.VerticalLinesBrush;
+                    columnLine.StrokeThickness = GridControl.VerticalLinesThickness;
+                    ColumnLines.Add(columnLine);
+                    LogicalChildren.Add(columnLine);
+                    VisualChildren.Add(columnLine);
+                }
+
+                int lastAccumulatedRowHeightsIndex = AccumulatedRowHeights.Count(rh => !Double.IsNaN(rh)) - 1;
+                while (RowLines.Count > lastAccumulatedRowHeightsIndex)
+                {
+                    var rowLine = RowLines[RowLines.Count - 1];
+                    RowLines.Remove(rowLine);
+                    LogicalChildren.Remove(rowLine);
+                    VisualChildren.Remove(rowLine);
+                }
+
+                while (lastAccumulatedRowHeightsIndex > RowLines.Count)
+                {
+                    Line rowLine = new Line();
+                    rowLine.Stroke = GridControl.HorizontalLinesBrush;
+                    rowLine.StrokeThickness = GridControl.HorizontalLinesThickness;
+                    RowLines.Add(rowLine);
+                    LogicalChildren.Add(rowLine);
+                    VisualChildren.Add(rowLine);
+                }
+
+                for (int i = 0; i < RowLines.Count; i++)
+                {
+                    double y = AccumulatedRowHeights[i + 1] - GridControl.HorizontalLinesThickness / 2.0;
+                    RowLines[i].StartPoint = new Point(0.0, y);
+                    RowLines[i].EndPoint = new Point(AccumulatedColumnWidths[lastAccumulatedColumnWidthsIndex], y);
+                }
+
+                for (int i = 0; i < ColumnLines.Count; i++)
+                {
+                    double x = AccumulatedColumnWidths[i + 1] - GridControl.VerticalLinesThickness / 2.0;
+                    ColumnLines[i].StartPoint = new Point(x, 0.0);
+                    ColumnLines[i].EndPoint = new Point(x, AccumulatedRowHeights[lastAccumulatedRowHeightsIndex]);
+                }
+
+                foreach (var line in RowLines.Concat(ColumnLines))
+                {
+                    line.InvalidateMeasure();
+                    line.Measure(Size.Infinity);
+                }
+            }
         }
 
         public void RecreateCells()
@@ -348,20 +359,20 @@ namespace Ruthenium.DataGrid
 
             void AddCellAction(Cell cell)
             {
-                cell.PointerReleased += CellOnPointerReleased;
+                //cell.PointerReleased += CellOnPointerReleased;
                 LogicalChildren.Add(cell);
                 VisualChildren.Add(cell);
             }
 
             void RemoveCellAction(Cell cell)
             {
-                cell.PointerReleased -= CellOnPointerReleased;
+                //cell.PointerReleased -= CellOnPointerReleased;
                 LogicalChildren.Remove(cell);
                 VisualChildren.Remove(cell);
             }
         }
 
-        private void UpdateCellSelection(Cell cell)
+        /*private void UpdateCellSelection(Cell cell)
         {
             cell.Background = GridControl.IsSelected(cell.Row) ? DataGrid.SelectedCellBrush : GridControl.DataAreaBackground;
         }
@@ -387,7 +398,7 @@ namespace Ruthenium.DataGrid
                 _bottomRowToFocus = row;
                 InvalidateMeasure();
             }
-        }
+        }*/
         
         public void ScrollLineUp()
         {

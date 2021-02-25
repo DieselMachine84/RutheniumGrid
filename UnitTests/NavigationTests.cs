@@ -207,7 +207,7 @@ namespace Ruthenium.DataGrid.UnitTests
             ShowGridWindow(resize, actions);
         }
 
-        [Fact]
+        /*[Fact]
         public void SelectionTest()
         {
             //4 cells by 16 pixels with 1 pixel border
@@ -394,6 +394,6 @@ namespace Ruthenium.DataGrid.UnitTests
                 Assert.Equal(995 + (9.0 / 16.0), GetScrollOffset(dataGrid));
             });
             ShowGridWindow(resize, actions);
-        }
+        }*/
     }
 }

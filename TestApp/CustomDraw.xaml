@@ -4,7 +4,7 @@
              xmlns:rut="clr-namespace:Ruthenium.DataGrid;assembly=Ruthenium.DataGrid">
     <rut:DataGrid Name="grid" ItemsSource="{Binding}" DataAreaBackground="LightGreen"
                   BorderBrush="Red" BorderThickness="5"
-                  HorizontalLinesBrush="Blue" HorizontalLinesThickness="3"
+                  HorizontalLinesBrush="Blue" HorizontalLinesThickness="10"
                   VerticalLinesBrush="Orange" VerticalLinesThickness="4">
         <rut:DataGrid.Columns>
             <rut:TextColumn FieldName="Id" Width="50" />

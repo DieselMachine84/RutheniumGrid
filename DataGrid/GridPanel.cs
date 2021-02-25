@@ -10,11 +10,16 @@ namespace Ruthenium.DataGrid
     public class GridPanel : Control
     {
         private DataGrid GridControl { get; }
-        private CellsPanel CellsPanel { get; }
         private List<ColumnHeader> ColumnHeaders { get; } = new List<ColumnHeader>();
+        private CellsPanel CellsPanel { get; }
+        private List<Line> GridBorderLines { get; } = new List<Line>();
         private List<Line> ColumnHeaderLines { get; } = new List<Line>();
         private Line HorizontalHeaderLine { get; set; }
-        private double ColumnHeadersHeight { get; set; }
+
+        static GridPanel()
+        {
+            ClipToBoundsProperty.OverrideDefaultValue<GridPanel>(true);
+        }
 
         public GridPanel(DataGrid gridControl)
         {
@@ -24,45 +29,61 @@ namespace Ruthenium.DataGrid
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            ColumnHeadersHeight = 0.0;
+            double doubleBorderThickness = GridControl.ShowBorder ? GridControl.BorderThickness * 2.0 : 0.0;
+            double columnHeadersHeight = 0.0;
             foreach (var columnHeader in ColumnHeaders)
             {
-                columnHeader.Measure(Size.Infinity);
-                ColumnHeadersHeight = Math.Max(ColumnHeadersHeight, columnHeader.DesiredSize.Height);
+                columnHeader.Measure(new Size(availableSize.Width - doubleBorderThickness, Double.PositiveInfinity));
+                columnHeadersHeight = Math.Max(columnHeadersHeight, columnHeader.DesiredSize.Height);
             }
+            columnHeadersHeight += GridControl.HorizontalLinesThickness;
 
-            double columnHeadersWidth = 0.0;
-            for (int i = 0; i < ColumnHeaders.Count; i++)
-            {
-                var columnHeader = ColumnHeaders[i];
-                columnHeadersWidth += columnHeader.Column.Width;
-                double lineX = columnHeadersWidth + GridControl.VerticalLinesThickness / 2.0;
-                ColumnHeaderLines[i].StartPoint = new Point(lineX, 0.0);
-                ColumnHeaderLines[i].EndPoint = new Point(lineX, ColumnHeadersHeight);
-                columnHeadersWidth += GridControl.VerticalLinesThickness;
-            }
+            double columnHeadersWidth = ColumnHeaders.Sum(ch => ch.Column.Width + GridControl.VerticalLinesThickness);
 
-            var columnHeaderWithHalfLineHeight = ColumnHeadersHeight + GridControl.HorizontalLinesThickness / 2.0;
-            var columnHeaderWithLineHeight = ColumnHeadersHeight + GridControl.HorizontalLinesThickness;
-            HorizontalHeaderLine.StartPoint = new Point(0.0, columnHeaderWithHalfLineHeight);
-            HorizontalHeaderLine.EndPoint = new Point(columnHeadersWidth, columnHeaderWithHalfLineHeight);
-            CellsPanel.Measure(new Size(availableSize.Width, availableSize.Height - columnHeaderWithLineHeight));
-            return new Size(columnHeadersWidth, columnHeaderWithLineHeight + CellsPanel.DesiredSize.Height);
+            //TODO check negative height
+            CellsPanel.Measure(new Size(availableSize.Width - doubleBorderThickness,
+                availableSize.Height - doubleBorderThickness - columnHeadersHeight));
+            return new Size(columnHeadersWidth + doubleBorderThickness,
+                columnHeadersHeight + CellsPanel.DesiredSize.Height + doubleBorderThickness);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            double columnHeadersWidth = 0.0;
+            if (GridControl.ShowBorder)
+            {
+                var halfBorderLineThickness = GridControl.BorderThickness / 2.0;
+                GridBorderLines[0].StartPoint = new Point(0.0, halfBorderLineThickness);
+                GridBorderLines[0].EndPoint = new Point(finalSize.Width, halfBorderLineThickness);
+                GridBorderLines[1].StartPoint = new Point(0.0, finalSize.Height - halfBorderLineThickness);
+                GridBorderLines[1].EndPoint = new Point(finalSize.Width, finalSize.Height - halfBorderLineThickness);
+                GridBorderLines[2].StartPoint = new Point(halfBorderLineThickness, 0.0);
+                GridBorderLines[2].EndPoint = new Point(halfBorderLineThickness, finalSize.Height);
+                GridBorderLines[3].StartPoint = new Point(finalSize.Width - halfBorderLineThickness, 0.0);
+                GridBorderLines[3].EndPoint = new Point(finalSize.Width - halfBorderLineThickness, finalSize.Height);
+            }
+            foreach (var borderLine in GridBorderLines)
+            {
+                borderLine.IsVisible = GridControl.ShowBorder;
+            }
+
+            double columnHeadersHeight = ColumnHeaders.Max(ch => ch.DesiredSize.Height) + GridControl.HorizontalLinesThickness;
+            double borderThickness = GridControl.ShowBorder ? GridControl.BorderThickness : 0.0;
+            double horizontalLineY = borderThickness + columnHeadersHeight - GridControl.HorizontalLinesThickness / 2.0;
+            HorizontalHeaderLine.StartPoint = new Point(borderThickness, horizontalLineY);
+            HorizontalHeaderLine.EndPoint = new Point(finalSize.Width - borderThickness, horizontalLineY);
+            double columnHeadersWidth = borderThickness;
             for (int i = 0; i < ColumnHeaders.Count; i++)
             {
                 var columnHeader = ColumnHeaders[i];
-                ColumnHeaders[i].Arrange(new Rect(columnHeadersWidth, 0.0, columnHeader.Column.Width, ColumnHeadersHeight));
+                columnHeader.Arrange(new Rect(columnHeadersWidth, borderThickness, columnHeader.Column.Width, columnHeadersHeight));
                 columnHeadersWidth += columnHeader.Column.Width + GridControl.VerticalLinesThickness;
+                double verticalLineX = columnHeadersWidth - GridControl.VerticalLinesThickness / 2.0;
+                ColumnHeaderLines[i].StartPoint = new Point(verticalLineX, borderThickness);
+                ColumnHeaderLines[i].EndPoint = new Point(verticalLineX, columnHeadersHeight + borderThickness);
             }
 
-            var columnHeaderWithLineHeight = ColumnHeadersHeight + GridControl.HorizontalLinesThickness;
-            CellsPanel.Arrange(new Rect(0.0, columnHeaderWithLineHeight,
-                finalSize.Width, finalSize.Height - columnHeaderWithLineHeight));
+            CellsPanel.Arrange(new Rect(borderThickness, borderThickness + columnHeadersHeight,
+                finalSize.Width - 2.0 * borderThickness, finalSize.Height - 2.0 * borderThickness - columnHeadersHeight));
 
             return finalSize;
         }
@@ -71,6 +92,15 @@ namespace Ruthenium.DataGrid
         {
             LogicalChildren.Clear();
             VisualChildren.Clear();
+
+            GridBorderLines.Clear();
+            for (int i = 0; i < 4; i++)
+            {
+                var line = new Line() {Stroke = GridControl.BorderBrush, StrokeThickness = GridControl.BorderThickness};
+                GridBorderLines.Add(line);
+                LogicalChildren.Add(line);
+                VisualChildren.Add(line);
+            }
 
             ColumnHeaders.Clear();
             ColumnHeaderLines.Clear();
@@ -96,7 +126,7 @@ namespace Ruthenium.DataGrid
             VisualChildren.Add(CellsPanel);
         }
 
-        public void UpdateSelection()
+        /*public void UpdateSelection()
         {
             CellsPanel.UpdateSelection();
         }
@@ -104,7 +134,7 @@ namespace Ruthenium.DataGrid
         public void FocusRow(int row)
         {
             CellsPanel.FocusRow(row);
-        }
+        }*/
 
         public void ScrollLineUp()
         {

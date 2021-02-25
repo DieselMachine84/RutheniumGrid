@@ -9,9 +9,18 @@ using Avalonia.Media;
 
 namespace Ruthenium.DataGrid
 {
-    public class DataGrid : TemplatedControl
+    public class DataGrid : Control
     {
-        internal static SolidColorBrush SelectedCellBrush { get; } = new SolidColorBrush {Color = Color.FromRgb(0x11, 0x9E, 0xDA)};
+        //internal static SolidColorBrush SelectedCellBrush { get; } = new SolidColorBrush {Color = Color.FromRgb(0x11, 0x9E, 0xDA)};
+
+        public static readonly StyledProperty<bool> ShowBorderProperty =
+            AvaloniaProperty.Register<DataGrid, bool>(nameof(ShowBorder), defaultValue: true);
+
+        public static readonly StyledProperty<IBrush> BorderBrushProperty =
+            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(BorderBrush), defaultValue: Brushes.Black);
+
+        public static readonly StyledProperty<double> BorderThicknessProperty =
+            AvaloniaProperty.Register<DataGrid, double>(nameof(BorderThickness), defaultValue: 1.0);
 
         public static readonly StyledProperty<IBrush> DataAreaBackgroundProperty =
             AvaloniaProperty.Register<DataGrid, IBrush>(nameof(DataAreaBackground));
@@ -20,8 +29,7 @@ namespace Ruthenium.DataGrid
             AvaloniaProperty.Register<DataGrid, bool>(nameof(ShowHorizontalLines), defaultValue: true);
 
         public static readonly StyledProperty<IBrush> HorizontalLinesBrushProperty =
-            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(HorizontalLinesBrush),
-                defaultValue: new SolidColorBrush {Color = Colors.Black});
+            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(HorizontalLinesBrush), defaultValue: Brushes.Black);
 
         public static readonly StyledProperty<double> HorizontalLinesThicknessProperty =
             AvaloniaProperty.Register<DataGrid, double>(nameof(HorizontalLinesThickness), defaultValue: 1.0);
@@ -30,8 +38,7 @@ namespace Ruthenium.DataGrid
             AvaloniaProperty.Register<DataGrid, bool>(nameof(ShowVerticalLines), defaultValue: true);
 
         public static readonly StyledProperty<IBrush> VerticalLinesBrushProperty =
-            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(VerticalLinesBrush),
-                defaultValue: new SolidColorBrush {Color = Colors.Black});
+            AvaloniaProperty.Register<DataGrid, IBrush>(nameof(VerticalLinesBrush), defaultValue: Brushes.Black);
 
         public static readonly StyledProperty<double> VerticalLinesThicknessProperty =
             AvaloniaProperty.Register<DataGrid, double>(nameof(VerticalLinesThickness), defaultValue: 1.0);
@@ -45,6 +52,24 @@ namespace Ruthenium.DataGrid
         private GridPanel Panel { get; }
 
         internal DataController Controller { get; } = new DataController();
+
+        public bool ShowBorder
+        {
+            get => GetValue(ShowBorderProperty);
+            set => SetValue(ShowBorderProperty, value);
+        }
+
+        public IBrush BorderBrush
+        {
+            get => GetValue(BorderBrushProperty);
+            set => SetValue(BorderBrushProperty, value);
+        }
+
+        public double BorderThickness
+        {
+            get => GetValue(BorderThicknessProperty);
+            set => SetValue(BorderThicknessProperty, value);
+        }
 
         public IBrush DataAreaBackground
         {
@@ -93,11 +118,11 @@ namespace Ruthenium.DataGrid
             get => _itemsSource;
             set => SetAndRaise(ItemsSourceProperty, ref _itemsSource, value);
         }
-        internal List<SelectedPair> SelectedRows { get; private set; } = new List<SelectedPair>();
+        //internal List<SelectedPair> SelectedRows { get; private set; } = new List<SelectedPair>();
 
-        public SelectionType SelectionType { get; set; } = SelectionType.Single;
+        //public SelectionType SelectionType { get; set; } = SelectionType.Single;
 
-        public int FocusedRow
+        /*public int FocusedRow
         {
             get
             {
@@ -105,15 +130,16 @@ namespace Ruthenium.DataGrid
                 return SelectedRows.Count > 0 ? SelectedRows[0].From : -1;
             }
             //TODO implement set
-        }
+        }*/
 
         public List<Column> Columns { get; } = new List<Column>();
 
         static DataGrid()
         {
+            ClipToBoundsProperty.OverrideDefaultValue<DataGrid>(true);
             //TODO AddClassHandler?
             ItemsSourceProperty.Changed.AddClassHandler<DataGrid>((x, e) => x.ItemsSourceChanged(e));
-            FocusableProperty.OverrideDefaultValue<DataGrid>(true);
+            //FocusableProperty.OverrideDefaultValue<DataGrid>(true);
         }
 
         public DataGrid()
@@ -141,7 +167,7 @@ namespace Ruthenium.DataGrid
             return finalSize;
         }
 
-        protected override void OnKeyDown(KeyEventArgs e)
+        /*protected override void OnKeyDown(KeyEventArgs e)
         {
             if (!e.Handled)
             {
@@ -335,7 +361,7 @@ namespace Ruthenium.DataGrid
         {
             SelectRow(row);
             Panel.FocusRow(row);
-        }
+        }*/
 
         public void ScrollLineUp()
         {
