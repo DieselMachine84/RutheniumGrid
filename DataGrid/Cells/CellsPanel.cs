@@ -66,8 +66,18 @@ namespace Ruthenium.DataGrid
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            if (GridControl.Columns.Count == 0)
+            if (GridControl.Columns.Count == 0 || GridControl.Controller.Count == 0)
+            {
+                foreach (var cell in Cells.GetVisibleCells())
+                {
+                    cell.IsVisible = false;
+                }
+                for (int i = 0; i < RowHeights.Count; i++)
+                    RowHeights[i] = Double.NaN;
+                CalcAccumulatedColumnRowSizes();
+                ScrollBar.IsVisible = false;
                 return Size.Empty;
+            }
 
             start:
             bool measureFromTop = (bottomRowToFocus < 0);
@@ -261,6 +271,7 @@ namespace Ruthenium.DataGrid
             void UpdateScrollBar()
             {
                 //TODO: grid should not scroll entirely
+                ScrollBar.IsVisible = (viewportRowsHeight >= availableSize.Height);
                 ScrollBar.Height = availableSize.Height;
                 ScrollBar.ViewportSize = row - firstRow - 2 + firstVisibleRowVisiblePart + lastVisibleRowVisiblePart;
                 ScrollBar.InvalidateMeasure();

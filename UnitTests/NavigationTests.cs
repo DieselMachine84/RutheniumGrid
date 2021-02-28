@@ -86,6 +86,35 @@ namespace Ruthenium.DataGrid.UnitTests
         }
 
         [Fact]
+        public void EmptyGrid()
+        {
+            //36.5 cells by 16 pixels with 1 pixel border
+            //header cell 16 pixels with 1 pixel border
+            //2 borders by 1 pixel for grid
+            Action<Window> resize = (window) => { window.Height = (16 + 1) * 36 + 16 * 0.5 + 16 + 1 + 2; };
+            var actions = new Queue<Action<DataGrid>>();
+            actions.Enqueue(dataGrid =>
+            {
+                dataGrid.ItemsSource = DataSources.GetSimpleDataSource(0);
+            });
+            actions.Enqueue(dataGrid =>
+            {
+                Assert.Empty(GetVisibleCells(dataGrid));
+            });
+            actions.Enqueue(dataGrid =>
+            {
+                dataGrid.ItemsSource = DataSources.GetSimpleDataSource(1000);
+            });
+            actions.Enqueue(dataGrid =>
+            {
+                var expected = new List<ValueTuple<int, string>>
+                    {(0, "0"), (1, "A"), (72, "36"), (73, "AK")};
+                CheckCellText(dataGrid, expected);
+            });
+            ShowGridWindow(resize, actions);
+        }
+
+        [Fact]
         public void ScrollDownAndUp()
         {
             //36.5 cells by 16 pixels with 1 pixel border

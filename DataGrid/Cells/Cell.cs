@@ -51,7 +51,7 @@ namespace Ruthenium.DataGrid
 
         public override string ToString()
         {
-            return $"Row: {Row}, Column: {Column.Index}, Text: {DataContext?.ToString() ?? String.Empty}";
+            return $"Row: {Row}, Column: {Column.Index}, Text: {DataContext?.ToString() ?? String.Empty}, IsVisible {IsVisible}";
         }
     }
 }
